@@ -1,6 +1,6 @@
 module LongArithm.BigInt
 
-open MyList
+open MyList2
 
 type Sign =
     | Positive
@@ -11,15 +11,15 @@ type BigInt =
     val Sign:Sign
     val Digits:MyList<int>
     new (s, b) = {
-        Sign = if b = One 0 then Positive else s
+        Sign = if b = Single 0 then Positive else s
         Digits =
-            if (fold (fun _ i -> i >= 0 && i <= 9) true b)
+            if (MyList.fold (fun _ i -> i >= 0 && i <= 9) true b)
             then b
             else failwith "Digits should be in range 0..9"
         }
 
 let equal (x:BigInt) (y:BigInt) =
-    if x.Sign <> y.Sign || len x.Digits <> len y.Digits
+    if x.Sign <> y.Sign || MyList.length x.Digits <> len y.Digits
     then false
     else map2 (=) x.Digits y.Digits |> fold (&&) true
 
