@@ -7,8 +7,8 @@
   <ItemGroup>
     <Compile Include="Parser.fs" />
     <Compile Include="RPN.fs" />
-    <Compile Include="MyList.fs" />
-    <Compile Include="MyList2.fs" />
+    <Compile Include="ListFromScratch.fs" />
+    <Compile Include="MyString.fs" />
     <Compile Include="BigInt.fs" />
   </ItemGroup>
   <ItemGroup>

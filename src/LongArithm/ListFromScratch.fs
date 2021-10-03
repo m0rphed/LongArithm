@@ -1,4 +1,4 @@
-module LongArithm.MyList2
+module LongArithm.ListFromScratch
 
 /// Generic List implementation "from scratch";
 /// `MyList` must be nonempty (always contains a value)
@@ -16,18 +16,18 @@ module MyList =
         | Single _ -> failwith "There's no tail"
         | Nodes (_, tail) -> tail
 
-    let rec iter func list =
+    let rec iter action list =
         match list with
-        | Single v -> func v
+        | Single v -> action v
         | Nodes (v, nextNode) ->
-            func v
-            nextNode |> iter func
+            action v
+            nextNode |> iter action
 
     /// Map implemented for `MyList`
-    let rec map func list =
+    let rec map mapping list =
         match list with
-        | Single v -> Single(func v)
-        | Nodes (v, nextNode) -> Nodes(func v, map func nextNode)
+        | Single v -> Single(mapping v)
+        | Nodes (v, nextNode) -> Nodes(mapping v, map mapping nextNode)
 
     /// Fold implemented for MyList
     let rec fold folder acc list =
@@ -40,11 +40,23 @@ module MyList =
     /// Returns length of the list
     let length list = fold (fun acc _elem -> acc + 1) 0 list
 
+    let reverse myList =
+        match myList with
+        | Single _ -> myList
+        | Nodes (head, tail) ->
+            fold (fun rest v -> Nodes(v, rest)) (Single head) tail
+            
+    let rec map2 mapping myListA myListB =
+        match myListA, myListB with
+        | Single a, Single b -> Single (mapping a b)
+        | Nodes (a, tailA), Nodes (b, tailB) -> Nodes (mapping a b, map2 mapping tailA tailB)
+        | _ -> invalidArg "myListB" "Error [map2]: input lists differ in length."
+    
     /// Combines two lists of the same type into one
-    let rec concat listA listB =
-        match listA with
-        | Single v -> Nodes(v, listB)
-        | Nodes (v, nextNode) -> Nodes(v, concat nextNode listB)
+    let rec concat myListA myListB =
+        match myListA with
+        | Single v -> Nodes(v, myListB)
+        | Nodes (v, nextNode) -> Nodes(v, concat nextNode myListB)
 
     /// Converts from list to nonempty MyList
     let rec fromList list =
@@ -60,7 +72,6 @@ module MyList =
         | Nodes (v, nextNode) ->
             nextNode
             |> fold (fun listAcc currentElement -> listAcc @ [ currentElement ]) [ v ]
-
 
     /// Quicksort implemented for MyList
     let qsort comparer myList =
@@ -88,15 +99,3 @@ module MyList =
         for i = 0 to (length myList) - 1 do
             res <- sort res
         res
-        
-    let reverse myList =
-        match myList with
-        | Single _ -> myList
-        | Nodes (head, tail) ->
-            fold (fun rest v -> Nodes(v, rest)) (Single head) tail
-            
-    let rec map2 mapping myListA myListB =
-        match myListA, myListB with
-        | Single a, Single b -> Single (mapping a b)
-        | Nodes (a, tailA), Nodes (b, tailB) -> Nodes (mapping a b, map2 mapping tailA tailB)
-        | _ -> invalidArg "myListB" "Error [map2]: input lists differ in length."
