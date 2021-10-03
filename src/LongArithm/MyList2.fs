@@ -9,8 +9,8 @@ type MyList<'T> =
 /// Implementation of std. list function for MyList
 module MyList =
     let head = function
-        | Single x -> x
-        | Nodes (x, _) -> x
+        | Single v -> v
+        | Nodes (v, _) -> v
 
     let tail = function
         | Single _ -> failwith "There's no tail"
@@ -80,15 +80,13 @@ module MyList =
                     else Nodes(previous, sort (Nodes(current, tail)))
 
                 | Single current ->
-                    if comparer previous current then
-                        Nodes(current, Single previous)
-                    else
-                        Nodes(previous, Single current)
+                    if comparer previous current
+                    then Nodes(current, Single previous)
+                    else Nodes(previous, Single current)
 
         let mutable res = myList
         for i = 0 to (length myList) - 1 do
             res <- sort res
-
         res
         
     let reverse myList =
@@ -97,28 +95,8 @@ module MyList =
         | Nodes (head, tail) ->
             fold (fun rest v -> Nodes(v, rest)) (Single head) tail
             
-    let map2 mapping list1 list2 =
-        let rec go mapping x y =
-            match x with
-            | Single x1 ->
-                match y with
-                | Single y1 -> Single (mapping x1 y1)
-                | Nodes _ -> failwith "Impossible case"
-            | Nodes (x1, tail1) ->
-                match y with
-                | Single _ -> failwith "Impossible case"
-                | Nodes (y1, tail2) -> Nodes (mapping x1 y1, go mapping tail1 tail2)
-
-        
-        if length list1 = length list2
-        then
-            match list1 with
-            | Single x1 ->
-                match list2 with
-                | Single y1 -> Nodes (mapping x1 y1)
-                | Nodes _ -> failwith "Impossible case"
-            | Nodes (x1, tail1) ->
-                match list2 with
-                | Single _ -> failwith "Impossible case"
-                | Nodes (y1, tail2) -> go mapping list1 list2
-        else failwith "Length of lists should be equal"
+    let rec map2 mapping myListA myListB =
+        match myListA, myListB with
+        | Single a, Single b -> Single (mapping a b)
+        | Nodes (a, tailA), Nodes (b, tailB) -> Nodes (mapping a b, map2 mapping tailA tailB)
+        | _ -> invalidArg "myListB" "Error [map2]: input lists differ in length."
