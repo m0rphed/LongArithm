@@ -97,17 +97,17 @@ module MyList =
         | Nodes (head, tail) ->
             fold (fun rest v -> Nodes(v, rest)) (Single head) tail
             
-    let map2 mapping (list1:MyList<'t>) (list2:MyList<'t>) =
-        let rec go mapping (x:MyList<'t>) (y:MyList<'t>) =
+    let map2 mapping list1 list2 =
+        let rec go mapping x y =
             match x with
             | Single x1 ->
                 match y with
                 | Single y1 -> Single (mapping x1 y1)
                 | Nodes _ -> failwith "Impossible case"
-            | Nodes (x1, tailx) ->
+            | Nodes (x1, tail1) ->
                 match y with
                 | Single _ -> failwith "Impossible case"
-                | Nodes (y1, taily) -> Nodes (mapping x1 y1, go mapping tailx taily)
+                | Nodes (y1, tail2) -> Nodes (mapping x1 y1, go mapping tail1 tail2)
 
         
         if length list1 = length list2
@@ -117,8 +117,8 @@ module MyList =
                 match list2 with
                 | Single y1 -> Nodes (mapping x1 y1)
                 | Nodes _ -> failwith "Impossible case"
-            | Cons(x1, tailx) ->
+            | Nodes (x1, tail1) ->
                 match list2 with
-                | One _ -> failwith "Impossible case"
-                | Cons(y1, taily) -> go mapping list1 list2
+                | Single _ -> failwith "Impossible case"
+                | Nodes (y1, tail2) -> go mapping list1 list2
         else failwith "Length of lists should be equal"
