@@ -5,11 +5,19 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Parser\Parser.fs" />
+    
+    <Compile Include="Types.fs" />
+    <Compile Include="Operators.fs" />
+    <Compile Include="Expressions.fs" />
+    <Compile Include="Statements.fs" />
+    
     <Compile Include="Parser.fs" />
     <Compile Include="RPN.fs" />
     <Compile Include="ListFromScratch.fs" />
     <Compile Include="MyString.fs" />
     <Compile Include="BigInt.fs" />
+
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="5.0.0" />

@@ -1,4 +1,4 @@
-module LongArithm.Parser
+module LongArithm.MathParser
 
 open FParsec
 

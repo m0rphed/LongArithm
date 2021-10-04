@@ -1,6 +1,6 @@
 module LongArithm.RPN
 
-open Parser
+open MathParser
 
 let private operatorsMapping =
     [ (OperatorTypes.Add, (+))
