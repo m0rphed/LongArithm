@@ -1,5 +1,8 @@
 ﻿@page "/"
 @using System.IO
+@using System.Net
+@using System.Text
+@using BlazorDownloadFile
 
 <h3>Code Editor</h3>
 
@@ -30,8 +33,16 @@
 </div>
 
 <MonacoEditor @ref="_editor" Id="sample-code-editor-123" ConstructionOptions="EditorConstructionOptions" OnDidInit="EditorOnDidInit" OnContextMenu="OnContextMenu" />
-<MudText Typo="Typo.h6">MudBlazor is @Text</MudText>
-<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ButtonOnClick">@ButtonText</MudButton>
+@* <MudText Typo="Typo.h6">MudBlazor is @Text</MudText> *@
+@* <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ButtonOnClick">@ButtonText</MudButton> *@
+<br/>
+<MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.ArrowDownward" 
+           Style="background: linear-gradient(90deg, #f00000, 
+           #f00000 16.67%, #ff8000 16.67%, #ff8000 33.33%, 
+           #ffff00 33.33%, #ffff00 50%, #007940 50%, #007940 66.67%, 
+           #4040ff 66.67%, #4040ff 83.33%, #a000c0 83.33%, #a000c0); color: white; width: 200px; height: 60px;" OnClick="DownloadFile">
+    Download Now
+</MudButton>
 
 @code {
   public string Text { get; set; } = "????";
@@ -78,7 +89,7 @@
 @code {
     private MonacoEditor _editor { get; set; }
     private string ValueToSet { get; set; }
-
+    [Inject] IBlazorDownloadFileService BlazorDownloadFileService { get; set; }
     IList<IBrowserFile> files = new List<IBrowserFile>();
     private async Task UploadFiles(InputFileChangeEventArgs e)
     {
@@ -135,7 +146,7 @@
         {
             Console.WriteLine("Ctrl+H : Initial editor command is triggered.");
         });
-
+        
         var newDecorations = new ModelDeltaDecoration[]
         {
             new ModelDeltaDecoration
@@ -149,7 +160,7 @@
                 }
             }
         };
-
+        
         decorationIds = await _editor.DeltaDecorations(null, newDecorations);
         // You can now use 'decorationIds' to change or remove the decorations
     }
@@ -196,5 +207,11 @@
             Console.WriteLine("Ctrl+D : Editor action is triggered.");
             Console.WriteLine(res);
         });
+    }
+
+    private async Task DownloadFile()
+    {
+        var val = await _editor.GetValue();
+        await BlazorDownloadFileService.DownloadFileFromText("program.txt", val, "text/plain");
     }
 }
