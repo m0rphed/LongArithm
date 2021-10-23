@@ -1,14 +1,14 @@
-module LongArithm.Parser
+#r "nuget: FParsec"
+open FParsec // FParsec 1.1.1
 
-open FParsec
+open System
+open System.Numerics
 
 [<AutoOpen>]
 module AST =
-    type Name = string
-    
     type Value =
         | Int of int
-        | Str of Name
+        | Str of string
         | Bool of bool
     
     type Operator =
@@ -26,23 +26,22 @@ module AST =
         | And // Boolean operators
         | Or
         | Sconcat // String concatenation
-        | Not
     
     type Expr =
         | Literal of Value
-        | Variable of name: Name
+        | Variable of name:string
         // The Expr type is recursive, as operations
         // can consist of expressions
         | Operation of (Expr * Operator * Expr)
     
     type Statement =
         | Print of Expr
-        | Set of name: Name * value:Expr
+        | Set of name:string * value:Expr
         | If of condition:Expr * body:Block * Else:Block option
         | While of condition:Expr * body:Block
     and Block = Statement list
 
-
+open FParsec
 
 [<AutoOpen>]
 module Parsing =
@@ -55,9 +54,8 @@ module Parsing =
     let pbool: Parser<Value, Unit> =
         pword "true" <|> pword "false"
         |>> function
-            | "true" -> Bool true
-            | "false" -> Bool false
-            | _ -> failwith "Expected 'true' or 'false' boolean literal"
+            | "true" -> Bool (true)
+            | "false" -> Bool (false)
 
     // FParsec defines the pint32 parser.
     // We simply cast its result to an int
@@ -83,9 +81,9 @@ module Parsing =
         match run parser strInput with
         // Assuming your parser returns something
         // that can be printed. For our purposes,
-        // %O is usually enough.
-        | Success (result, _, _) -> printfn $"{result}"
-        | Failure (error, _, _) -> printfn $"%s{error}"
+        // %O is usually enough. 
+        | Success (result, _, _) -> printfn "%O" result
+        | Failure (error, _, _) -> printfn "%s" error
 
     let pliteral: Parser<Expr, Unit> = pvalue |>> Literal
 
@@ -116,6 +114,7 @@ module Parsing =
                               Operator: Operator }
 
     let intOperators = [
+        //{Symbol = "+"; Precedence = 2; Operator = Add}
         {Symbol = ">"; Precedence = 1; Operator = Gt}
         {Symbol = "<"; Precedence = 1; Operator = Lt}
         {Symbol = ">="; Precedence = 1; Operator = Gte}
@@ -211,7 +210,7 @@ module Parsing =
         
     let pset: Parser<Statement, Unit> =
         let identifier =
-            many1Satisfy2 System.Char.IsLetter System.Char.IsLetterOrDigit
+            many1Satisfy2 (System.Char.IsLetter) (System.Char.IsLetterOrDigit)
             .>> pword "="
 
         identifier .>>. pexpression
@@ -242,10 +241,5 @@ module Parsing =
     
     let parseSourceFile fpath =
         match runParserOnFile (many pstatement) () fpath System.Text.Encoding.UTF8 with
-        | Success (result, _, _) -> printfn $"%A{result}"
-        | Failure (error, _, _) -> printfn $"%s{error}"
-        
-    let parseString str =
-        match runParserOnString (many pstatement) () "run parser on string" str with
-        | Success (result, _, _) -> result
-        | Failure (error, _, _) -> failwith $"Error: %s{error}"
+        | Success (result, _, _) -> printfn "%A" result
+        | Failure (error, _, _) -> printfn "%s" error

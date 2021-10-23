@@ -1,0 +1,194 @@
+﻿@page "/"
+
+<h3>Code Editor</h3>
+
+<div>
+    <div style="margin:10px 0;">
+        Theme:
+        <select @onchange="ChangeTheme">
+            <option value="vs">Visual Studio</option>
+            <option value="vs-dark">Visual Studio Dark</option>
+            <option value="hc-black">High Contrast Black</option>
+        </select>
+    </div>
+    <div style="margin:10px 0;">
+        New Value: <input type="text" @bind="ValueToSet" style="width: 400px;" /> <button @onclick="SetValue">Set Value</button>
+    </div>
+    <div style="margin:10px 0;">
+        <button @onclick="GetValue">Get Value</button>
+    </div>
+    <div style="margin:10px 0;">
+        <button @onclick="AddCommand">Add Command (Ctrl+Enter)</button>
+    </div>
+    <div style="margin:10px 0;">
+        <button @onclick="AddAction">Add Action (Ctrl+D)</button>
+    </div>
+    <div style="margin:10px 0;">
+        See the console for results.
+    </div>
+</div>
+
+<MonacoEditor @ref="_editor" Id="sample-code-editor-123" ConstructionOptions="EditorConstructionOptions" OnDidInit="EditorOnDidInit" OnContextMenu="OnContextMenu" />
+<MudText Typo="Typo.h6">MudBlazor is @Text</MudText>
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ButtonOnClick">@ButtonText</MudButton>
+
+@code {
+  public string Text { get; set; } = "????";
+  public string ButtonText { get; set; } = "Click Me";
+  public int ButtonClicked { get; set; }
+
+  void ButtonOnClick()
+  {
+      ButtonClicked += 1;
+      Text = $"Awesome x {ButtonClicked}";
+      ButtonText = "Click Me Again";
+  }
+}
+
+<label  style="
+        box-shadow: 0 2px 7px #4caf50;
+        display: inline-flex;
+        width: 150px;
+        justify-content: space-around;
+        border-radius: 2em;
+        color: white;
+        border:2px solid;
+        cursor: pointer;
+        align-items: center;
+        padding:16px;
+        background-color: #4caf50;"         
+       for="fileInput2">
+    Upload <MudIcon Icon="@Icons.Filled.CloudUpload"/>
+</label>
+
+<InputFile id="fileInput2" OnChange="UploadFiles" hidden multiple />
+
+@if (files != null)
+{
+    <MudList>
+        @foreach (var file in files)
+        {
+            <MudListItem Icon="@Icons.Filled.AttachFile">
+                @file.Name <code>@file.Size bytes</code>
+            </MudListItem>
+        }
+    </MudList>
+}
+@code
+{
+    IList<IBrowserFile> files = new List<IBrowserFile>();
+    private void UploadFiles(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles())
+        {
+            files.Add(file);
+        }
+        //TODO upload the files to the server
+    }
+}
+@code {
+    private MonacoEditor _editor { get; set; }
+    private string ValueToSet { get; set; }
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(MonacoEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            // Language = "javascript",
+            // GlyphMargin = true,
+            // Value = "\"use strict\";\n" +
+            //         "function Person(age) {\n" +
+            //         "	if (age) {\n" +
+            //         "		this.age = age;\n" +
+            //         "	}\n" +
+            //         "}\n" +
+            //         "Person.prototype.getAge = function () {\n" +
+            //         "	return this.age;\n" +
+            //         "};\n"
+            Language = "custom-lang",
+            GlyphMargin = true,
+            Value = "i= 1\n" +
+                    "while i <= 100 {\n" +
+                    "\tif i % 15 == 0 {\n" +
+                    "\t\tprint(\"fizzbuzz\")\n" +
+                    "\t} else {\n" +
+                    "\t\tif i % 3 == 0 {\n" +
+                    "\t\t\tprint(\"fizz\")\n" +
+                    "\t\t} else {\n" +
+                    "\t\t\tif i % 5 == 0 {\n" +
+                    "\t\t\t\tprint(\"buzz\")\n" +
+                    "\t\t\t} else {\n" +
+                    "\t\t\t\tprint(i)\n" +
+                    "\t\t\t}\n" + "\t\t}\n\t}\n\ti= i + 1\n}"
+        };
+    }
+
+    private async Task EditorOnDidInit(MonacoEditorBase editor)
+    {
+        await _editor.AddCommand((int)KeyMode.CtrlCmd | (int)KeyCode.KEY_H, (editor, keyCode) =>
+        {
+            Console.WriteLine("Ctrl+H : Initial editor command is triggered.");
+        });
+
+        var newDecorations = new ModelDeltaDecoration[]
+        {
+            new ModelDeltaDecoration
+            {
+                Range = new BlazorMonaco.Range(3,1,3,1),
+                Options = new ModelDecorationOptions
+                {
+                    IsWholeLine = true,
+                    ClassName = "decorationContentClass",
+                    GlyphMarginClassName = "decorationGlyphMarginClass"
+                }
+            }
+        };
+
+        decorationIds = await _editor.DeltaDecorations(null, newDecorations);
+        // You can now use 'decorationIds' to change or remove the decorations
+    }
+
+    private string[] decorationIds;
+
+    private void OnContextMenu(EditorMouseEvent eventArg)
+    {
+        Console.WriteLine("OnContextMenu : " + System.Text.Json.JsonSerializer.Serialize(eventArg));
+    }
+
+    private async Task ChangeTheme(ChangeEventArgs e)
+    {
+        Console.WriteLine($"setting theme to: {e.Value.ToString()}");
+        await MonacoEditor.SetTheme(e.Value.ToString());
+    }
+
+    private async Task SetValue()
+    {
+        Console.WriteLine($"setting value to: {ValueToSet}");
+        await _editor.SetValue(ValueToSet);
+    }
+
+    private async Task GetValue()
+    {
+        var val = await _editor.GetValue();
+        Console.WriteLine($"value is: {val}");
+    }
+
+    private async Task AddCommand()
+    {
+        await _editor.AddCommand((int)KeyMode.CtrlCmd | (int)KeyCode.Enter, (editor, keyCode) =>
+        {
+            Console.WriteLine("Ctrl+Enter : Editor command is triggered.");
+        });
+    }
+
+    private async Task AddAction()
+    {
+        await _editor.AddAction("testAction", "Test Action", new int[] { (int)KeyMode.CtrlCmd | (int)KeyCode.KEY_D, (int)KeyMode.CtrlCmd | (int)KeyCode.KEY_B }, null, null, "navigation", 1.5, async (editor, keyCodes) =>
+        {
+            var val = await _editor.GetValue();
+            var res = LongArithm.Parser.Parsing.parseString(val);
+            Console.WriteLine("Ctrl+D : Editor action is triggered.");
+            Console.WriteLine(res);
+        });
+    }
+}
