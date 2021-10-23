@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using System.IO
 
 <h3>Code Editor</h3>
 
@@ -74,22 +75,27 @@
         }
     </MudList>
 }
-@code
-{
-    IList<IBrowserFile> files = new List<IBrowserFile>();
-    private void UploadFiles(InputFileChangeEventArgs e)
-    {
-        foreach (var file in e.GetMultipleFiles())
-        {
-            files.Add(file);
-        }
-        //TODO upload the files to the server
-    }
-}
 @code {
     private MonacoEditor _editor { get; set; }
     private string ValueToSet { get; set; }
 
+    IList<IBrowserFile> files = new List<IBrowserFile>();
+    private async Task UploadFiles(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles())
+        {
+            var stream = file.OpenReadStream();
+            using (var sr = new StreamReader(stream))
+            {
+                var result = await sr.ReadToEndAsync();
+                await _editor.SetValue(result);
+                Console.WriteLine(result);
+            }
+            files.Add(file);
+        }
+    //TODO upload the files to the server
+    }
+    
     private StandaloneEditorConstructionOptions EditorConstructionOptions(MonacoEditor editor)
     {
         return new StandaloneEditorConstructionOptions
