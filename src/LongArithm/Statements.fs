@@ -1,8 +1,8 @@
 namespace LongArithm.Interpreter
 
-open LongArithm.Parser
+open System.Numerics
+open LongArithm.Parser.AST
 open LongArithm.Interpreter.Types
-open LongArithm.Interpreter.Operators
 open LongArithm.Interpreter.Expressions
 
 open System
@@ -20,8 +20,8 @@ module Statements =
         let input = Console.ReadLine()
             
         let (|Int|_|) input =
-           match Int32.TryParse(input:string) with
-           | true,int -> Some(int)
+           match BigInteger.TryParse(input:string) with
+           | true, bigInteger -> Some(bigInteger)
            | _ -> None
 
         let (|Bool|_|) input =
@@ -80,9 +80,9 @@ module Statements =
         let rec loop acc state' =
             match (acc, state') with
             | count, s when count = n'    -> runStatements block s
-            | _, s                        -> runStatements block s |> loop (acc + 1)
+            | _, s                        -> runStatements block s |> loop (acc + 1I)
         
-        loop 0 state
+        loop 0I state
 
     and runStatement state s =
         state

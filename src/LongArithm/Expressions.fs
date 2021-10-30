@@ -1,8 +1,8 @@
 namespace LongArithm.Interpreter
 
-open LongArithm.Parser
+open LongArithm.Parser.AST
 open LongArithm.Interpreter.Types
-open LongArithm.Interpreter.Operators
+open LongArithm.Interpreter.BinOperators
 
 module Expressions =
     let lookupVariable state name =
@@ -13,7 +13,7 @@ module Expressions =
 
     let printValue value =
         match value with
-        | Int i -> printfn $"%i{i}"
+        | Int bigInt -> printfn $"%A{bigInt}"
         | Bool b    -> printfn $"%b{b}"
         | Str s  -> printfn $"%s{s}"
 
@@ -23,21 +23,23 @@ module Expressions =
     
     let interpretIntegerValue = function
         | Int i -> i
-        | _         -> 0
-
-    let rec applyOperator state op e1 e2 =
+        | _     -> 0I
+        
+    let rec applyOperator state op (args: list<Expr>) =
         let reduceToValue exp =
             match exp with
             | Literal value         -> value
             | Variable name         -> lookupVariable state name
-            | Operation (x, op', y) -> applyOperator state op' x y
-        
-        mapOperator op (reduceToValue e1) (reduceToValue e2)
+            | BinaryOp (x, op', y) -> applyOperator state op' [x; y]
+            | _ -> failwith "todo"
+        let e1, e2 = args.[0], args.[1]
+        mapBinOperator op (reduceToValue e1) (reduceToValue e2)
 
     let rec evaluateExpression state = function
         | Literal value -> value
         | Variable name -> lookupVariable state name
-        | Operation (e1, op, e2) -> applyOperator state op e1 e2
+        | BinaryOp (e1, op, e2) -> applyOperator state op [e1; e2]
+        | _ -> failwith "todo"
 
     let evaluateCondition cond state =
         cond |> evaluateExpression state |> interpretConditionalValue

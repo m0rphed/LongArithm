@@ -1,6 +1,6 @@
 module LongArithm.BigInt
 
-open ListFromScratch
+open MyList
 open LongArithm
 
 type Sign =
@@ -318,7 +318,7 @@ let toBinary (x: MyBigInt) =
 
     MyBigInt(x.Sign, go divd (Single(MyList.head rem)))
 
-// todo: should a parser functions
+// todo: should be a parser functions
 let stringToBigInt (n: string) =
     let s =
         if n.[0] = '-' then
@@ -339,7 +339,7 @@ let stringToBigInt (n: string) =
     MyBigInt(s, ml)
 
 
-// todo: should a parser functions
+// todo: should be a parser functions
 let bigIntToString (n: MyBigInt) =
     let r =
         n.Digits
@@ -348,3 +348,16 @@ let bigIntToString (n: MyBigInt) =
     if n.Sign = Negative then "-" + r else r
 
 let abs (x: MyBigInt) = MyBigInt(Positive, x.Digits)
+
+let rec greater (x: MyList<int>) (y: MyList<int>) = // выводит true если первое число больше второго
+    match (x, y) with
+    | Single a, Single b -> a > b
+    | Single _, Nodes _ -> false         
+    | Nodes _, Single _ -> true
+    | Nodes (hd1, tail1), Nodes (hd2, tail2) ->
+        let lengthX, lengthY = MyList.length x, MyList.length y
+        match lengthX = lengthY with
+        | false -> lengthX > lengthY
+        | true -> if hd1 <> hd2 then hd1 > hd2 else (greater tail1 tail2)
+
+//let rec lessThan (x: MyList<int>) (y: MyList<int>)

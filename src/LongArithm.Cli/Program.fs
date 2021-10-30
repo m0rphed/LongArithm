@@ -2,17 +2,6 @@ module LongArithm.Cli.Main
 
 open LongArithm
 
-// Old parser of math expr -- tests
-let calcTest (input: string) =
-    printfn $"Input: %s{input}"
-    printfn $"ToPostfix: %A{MathParser.parseInfixNotation input}"
-    printfn $"=> Result: %A{RPN.calculateRPN (MathParser.parseInfixNotation input)}\n"
-
-let calculationsTest () =
-    let data = ["(1 + 1) * 2" ; "1 + 1 * 2"]
-    for x in data do
-        calcTest x
-
 // BigInt on List -- tests
 open BigInt
 
@@ -31,7 +20,7 @@ open FParsec
 
 let parseSourceFileTests () =
     let fpath = "/home/morph/Desktop/3_oct/PCParser/src/Interpreter/data/sample.txt"
-    match runParserOnFile (many pstatement) () fpath System.Text.Encoding.UTF8 with
+    match runParserOnFile (many pStatement) () fpath System.Text.Encoding.UTF8 with
     | Success (result, _, _) -> result
     | Failure (error, _, _) -> failwith $"Error: %s{error}"
     

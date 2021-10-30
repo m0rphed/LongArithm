@@ -1,59 +1,18 @@
-module LongArithm.Parser
-
-open FParsec
-
-[<AutoOpen>]
-module AST =
-    type Name = string
-    
-    type Value =
-        | Int of int
-        | Str of Name
-        | Bool of bool
-    
-    type Operator =
-        | Add // Arithmetic operators
-        | Sub
-        | Mult
-        | Div
-        | Mod
-        | Gt // Comparison operators
-        | Lt
-        | Gte
-        | Lte
-        | Eq // Equality operators
-        | Neq
-        | And // Boolean operators
-        | Or
-        | Sconcat // String concatenation
-        | Not
-    
-    type Expr =
-        | Literal of Value
-        | Variable of name: Name
-        // The Expr type is recursive, as operations
-        // can consist of expressions
-        | Operation of (Expr * Operator * Expr)
-    
-    type Statement =
-        | Print of Expr
-        | Set of name: Name * value:Expr
-        | If of condition:Expr * body:Block * Else:Block option
-        | While of condition:Expr * body:Block
-    and Block = Statement list
-
-
+namespace LongArithm.Parser
 
 [<AutoOpen>]
 module Parsing =
-    let pword s = pstring s .>> spaces
+    open FParsec
+    open AST
+    
+    let pWord str = pstring str .>> spaces
 
     // A combinator that transforms a parser by requiring that it
     // be wrapped in parentheses
-    let parens p = between (pword "(") (pword ")") p
+    let parens parser = between (pWord "(") (pWord ")") parser
     
-    let pbool: Parser<Value, Unit> =
-        pword "true" <|> pword "false"
+    let pBool: Parser<Value, Unit> =
+        pWord "true" <|> pWord "false"
         |>> function
             | "true" -> Bool true
             | "false" -> Bool false
@@ -62,9 +21,13 @@ module Parsing =
     // FParsec defines the pint32 parser.
     // We simply cast its result to an int
     // then construct an Integer Value from it
-    let pint: Parser<Value, Unit> = pint32 |>> int |>> Int
-    
-    let pstringliteral: Parser<Value, Unit> =
+    let pBigInt: Parser<Value, Unit> =
+        many1Satisfy isDigit
+            |>> System.Numerics.BigInteger.Parse
+            .>> spaces
+            |>> Int
+
+    let pStringLiteral: Parser<Value, Unit> =
         // This line returns a list of chars, which we have to
         // turn into a string before turning into a Str Value
         pchar '\"' >>. manyCharsTill anyChar (pchar '\"')
@@ -72,11 +35,11 @@ module Parsing =
         // Discard the spaces at the end
         .>> spaces
         
-    let pvalue: Parser<Value, Unit> =
+    let pValue: Parser<Value, Unit> =
         choice [
-            pint
-            pstringliteral
-            pbool
+            pBigInt
+            pStringLiteral
+            pBool
         ]
         
     let test parser strInput =
@@ -87,13 +50,13 @@ module Parsing =
         | Success (result, _, _) -> printfn $"{result}"
         | Failure (error, _, _) -> printfn $"%s{error}"
 
-    let pliteral: Parser<Expr, Unit> = pvalue |>> Literal
+    let pLiteral: Parser<Expr, Unit> = pValue |>> Literal
 
-    let pidentifier: Parser<string, Unit> =
+    let pIdentifier: Parser<string, Unit> =
         many1Satisfy2 System.Char.IsLetter System.Char.IsLetterOrDigit
         .>> spaces
     
-    let pvariable = pidentifier |>> Variable
+    let pVariable = pIdentifier |>> Variable
     
     let intOperatorParser =
         OperatorPrecedenceParser<Expr, Unit, Unit>()
@@ -101,7 +64,7 @@ module Parsing =
     let intExpr = intOperatorParser.ExpressionParser
     
     let intTerm = choice [
-        pint .>> spaces |>> Literal <|> pvariable
+        pBigInt .>> spaces |>> Literal <|> pVariable
         parens intExpr
     ]
     
@@ -109,11 +72,11 @@ module Parsing =
     // OperatorPrecedenceParser instance
     do intOperatorParser.TermParser <- intTerm
     
-    let createOperation op x y = Operation (x, op, y)
+    let createOperation op x y = BinaryOp (x, op, y)
 
     type OperatorDetails = {  Symbol: string;
                               Precedence: int;
-                              Operator: Operator }
+                              Operator: BinOperator }
 
     let intOperators = [
         {Symbol = ">"; Precedence = 1; Operator = Gt}
@@ -148,15 +111,15 @@ module Parsing =
     let boolOperatorParser = OperatorPrecedenceParser<Expr, Unit, Unit>()
     let boolExpr = boolOperatorParser.ExpressionParser
     
-    let pbool': Parser<bool, Unit> =
+    let pBool': Parser<bool, Unit> =
         pstring "true" <|> pstring "false"
         |>> System.Boolean.Parse
     
-    let pboolval = pbool' |>> Bool
+    let pBoolValue = pBool' |>> Bool
 
     let boolTerm = choice [
-        pboolval .>> spaces |>> Literal
-        pvariable
+        pBoolValue .>> spaces |>> Literal
+        pVariable
         parens boolExpr
     ]
     
@@ -168,8 +131,8 @@ module Parsing =
     // non-string values with strings, so we
     // accept any literal or variable
     let strTerm = choice [
-        pliteral
-        pvariable
+        pLiteral
+        pVariable
         intExpr
         boolExpr
         parens strExpr 
@@ -183,69 +146,69 @@ module Parsing =
     ]
 
     let stringOperators = [
-        {Symbol = "++"; Precedence = 1; Operator = Sconcat}
+        {Symbol = "++"; Precedence = 1; Operator = StrConcat}
     ]
 
     do addOperators boolOperatorParser boolOperators
     do addOperators strOperatorParser stringOperators
     
-    let poperation = choice [
+    let pOperation = choice [
         intExpr
         boolExpr
         strExpr
     ]
     
-    let pexpression = choice [
-        poperation
-        pliteral
-        pvariable
+    let pExpression = choice [
+        pOperation
+        pLiteral
+        pVariable
     ]
     
-    let pstatement, pstatementref =
+    let pStatement, pStatementRef =
         createParserForwardedToRef<Statement, Unit>()
     
-    let pprint: Parser<Statement, Unit> =
-        pword "print"
-        >>. parens pexpression
+    let pPrint: Parser<Statement, Unit> =
+        pWord "print"
+        >>. parens pExpression
         |>> Print
         
-    let pset: Parser<Statement, Unit> =
+    let pSetValue: Parser<Statement, Unit> =
         let identifier =
             many1Satisfy2 System.Char.IsLetter System.Char.IsLetterOrDigit
-            .>> pword "="
+             .>> manyChars (anyOf " \t") .>> pWord "="
 
-        identifier .>>. pexpression
+        identifier .>>. pExpression
         |>> Set
 
-    let pblock: Parser<Statement list, Unit> =
-        between (pword "{") (pword "}") (many pstatement)
-    let pif: Parser<Statement, Unit> =
-        let condition = pword "if" >>. pexpression
-        let inner = pblock
-        let elseBlock = pword "else" >>. pblock |> opt
+    let pBlock: Parser<Statement list, Unit> =
+        between (pWord "{") (pWord "}") (many pStatement)
+    let pIf: Parser<Statement, Unit> =
+        let condition = pWord "if" >>. pExpression
+        let inner = pBlock
+        let elseBlock = pWord "else" >>. pBlock |> opt
         
         pipe3 condition inner elseBlock (fun condition inner elseBlock ->
             If (condition, inner, elseBlock))
 
-    let pwhile: Parser<Statement, Unit> =
-        let condition = pword "while" >>. pexpression
+    let pWhile: Parser<Statement, Unit> =
+        let condition = pWord "while" >>. pExpression
         
-        condition .>>. pblock
+        condition .>>. pBlock
         |>> While
         
-    do pstatementref := choice [
-        pprint
-        pif
-        pwhile
-        pset
+    do pStatementRef := choice [
+        pPrint
+        pIf
+        pWhile
+        pSetValue
     ]
     
-    let parseSourceFile fpath =
-        match runParserOnFile (many pstatement) () fpath System.Text.Encoding.UTF8 with
+    let parseSourceFile filePath =
+        match runParserOnFile (many pStatement) () filePath System.Text.Encoding.UTF8 with
         | Success (result, _, _) -> printfn $"%A{result}"
         | Failure (error, _, _) -> printfn $"%s{error}"
         
     let parseString str =
-        match runParserOnString (many pstatement) () "run parser on string" str with
+        match runParserOnString (many pStatement) () "run parser on string" str with
         | Success (result, _, _) -> result
         | Failure (error, _, _) -> failwith $"Error: %s{error}"

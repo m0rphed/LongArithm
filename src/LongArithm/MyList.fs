@@ -1,4 +1,4 @@
-module LongArithm.ListFromScratch
+module LongArithm.MyList
 
 /// Generic List implementation "from scratch";
 /// `MyList` must be nonempty (always contains a value)
@@ -45,7 +45,7 @@ module MyList =
         | Single _ -> myList
         | Nodes (head, tail) ->
             fold (fun rest v -> Nodes(v, rest)) (Single head) tail
-            
+
     let rec map2 mapping myListA myListB =
         match myListA, myListB with
         | Single a, Single b -> Single (mapping a b)

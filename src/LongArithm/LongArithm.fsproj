@@ -5,18 +5,17 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="MyList.fs" />
+    <Compile Include="MyString.fs" />
+    <Compile Include="BigInt.fs" />
+    
+    <Compile Include="Parser\AST.fs" />
     <Compile Include="Parser\Parser.fs" />
     
     <Compile Include="Types.fs" />
-    <Compile Include="Operators.fs" />
+    <Compile Include="BinOperators.fs" />
     <Compile Include="Expressions.fs" />
     <Compile Include="Statements.fs" />
-    
-    <Compile Include="Parser.fs" />
-    <Compile Include="RPN.fs" />
-    <Compile Include="ListFromScratch.fs" />
-    <Compile Include="MyString.fs" />
-    <Compile Include="BigInt.fs" />
 
   </ItemGroup>
   <ItemGroup>

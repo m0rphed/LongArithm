@@ -1,6 +1,6 @@
 module LongArithm.MyString
 
-open LongArithm.ListFromScratch
+open LongArithm.MyList
 
 type MyString = MyList<char>
 
