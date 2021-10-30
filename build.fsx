@@ -90,7 +90,8 @@ Target.create "Build" (fun _ ->
 )
 
 Target.create "Test" (fun _ ->
-    exec "dotnet"  @"run --project .\tests\LongArithm.UnitTests\LongArithm.UnitTests.fsproj" "."
+    //exec "dotnet"  @"run --project .\tests\LongArithm.Tests\LongArithm.Tests.fsproj" "."
+    exec "dotnet"  @"test .\tests\LongArithm.Tests\ -t" "."
 )
 
 Target.create "Docs" (fun _ ->
@@ -197,7 +198,7 @@ Target.create "Release" DoNothing
 
 "Clean"
  ==> "BuildRelease"
- ==> "Docs"
+//  ==> "Docs"
 
 "Default"
   ==> "Pack"

@@ -157,52 +157,6 @@ let sum (x: MyBigInt) (y: MyBigInt) = // Если вычитаемое боль�
 let sub (x: MyBigInt) (y: MyBigInt) = sum x (reverseSign y)
 
 
-// <Karatsuba>
-let zeroPad (number: MyBigInt) zeros left =
-    let mutable digits = number.Digits
-    for i = 1 to zeros do
-        if left
-        then digits <- MyList.concat (Single 0) digits
-        else digits <- MyList.concat digits (Single 0)
-    MyBigInt (number.Sign, digits)
-
-let rec karatsuba (x: MyBigInt) (y: MyBigInt) =    
-    let helper (x: MyBigInt) (y: MyBigInt) =
-        let n = MyList.length x.Digits
-        let mutable j = n / 2
-        if n % 2 <> 0
-        then j <- j + 1
-        let BZeroPadding = n - j
-        let AZeroPadding = BZeroPadding * 2
-        let a = MyBigInt (Positive, (x.Digits |> MyList.toList).[..j - 1] |> MyList.fromList)
-        let b = MyBigInt (Positive, (x.Digits |> MyList.toList).[j..] |> MyList.fromList)
-        let c = MyBigInt (Positive, (y.Digits |> MyList.toList).[..j - 1] |> MyList.fromList)
-        let d = MyBigInt (Positive, (y.Digits |> MyList.toList).[j..] |> MyList.fromList)
-        let ac = karatsuba a c
-        let bd = karatsuba b d
-        let k = karatsuba (sum a b) (sum c d)
-        let A = zeroPad ac AZeroPadding false
-        let subtraction = sub (sub k ac) bd
-        let B = zeroPad subtraction BZeroPadding false
-        sum (sum A B) bd
-   
-    match MyList.length(x.Digits), MyList.length(y.Digits) with
-    | 1, 1 -> MyBigInt(setSign (getSign x * getSign y),
-                       (MyList.head x.Digits * MyList.head y.Digits) |> intToMyList)
-    | _, _ when MyList.length x.Digits < MyList.length y.Digits ->
-        let x = zeroPad x (MyList.length y.Digits - MyList.length x.Digits) true
-        let resWOSign = helper x y
-        MyBigInt(setSign (getSign x * getSign y), resWOSign.Digits)
-    | _, _ when MyList.length x.Digits > MyList.length y.Digits ->
-        let y = zeroPad y (MyList.length x.Digits - MyList.length y.Digits) true
-        let resWOSign = helper x y
-        MyBigInt(setSign (getSign x * getSign y), resWOSign.Digits)
-    | _, _ ->
-        let resWOSign = helper x y
-        MyBigInt(setSign (getSign x * getSign y), resWOSign.Digits)    
-// </Karatsuba>
-
-
 let mul (x: MyBigInt) (y: MyBigInt) =
     let result, _ =
         MyList.fold

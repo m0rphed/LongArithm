@@ -4,39 +4,44 @@ open LongArithm
 
 // BigInt on List -- tests
 open BigInt
+open Argu
 
-let testBigInt () =
-    let bigInt1 = "228" |> parseBigInt
-    let bigInt2 = "-1337" |> parseBigInt
-    
-    printfn $"Sum: {(sum bigInt1 bigInt2).ToString()}"
-    printfn $"Sub: {(sub bigInt1 bigInt2).ToString()}"
-    printfn $"Mul: {(mul bigInt1 bigInt2).ToString()}"
-    printfn $"Div: {(div bigInt1 bigInt2).ToString()}"
-
-// New Parser -- tests
 open LongArithm.Parser
-open FParsec
-
-let parseSourceFileTests () =
-    let fpath = "/home/morph/Desktop/3_oct/PCParser/src/Interpreter/data/sample.txt"
-    match runParserOnFile (many pStatement) () fpath System.Text.Encoding.UTF8 with
-    | Success (result, _, _) -> result
-    | Failure (error, _, _) -> failwith $"Error: %s{error}"
-    
-
-// New Interpreter -- tests
-open LongArithm.Interpreter.Statements
 open LongArithm.Interpreter.Types
+open LongArithm.Interpreter.Statements
+open FParsec
+    
+type CLIArguments =
+    | InputFile of file: string
+    | InputString of code: string
+    | Compute
+    //| ToDot of output: string
 
-let testRunStatements statements =
-    let initialState = { VariableTable = [] }
-    runStatements statements initialState
+    interface IArgParserTemplate with
+        member s.Usage =
+            match s with
+            | InputFile _ -> "File with code"
+            | InputString _ -> "String of code" 
+            | Compute -> "Return the result of interpretation of given code"
+            //| ToDot _ -> "Generates dot code of syntax tree to the given file"
 
 [<EntryPoint>]
-let main argv =
-    printfn "GO!!!\n"
-    let ast = parseSourceFileTests ()
-    printfn $"AST: %A{ast}"
-    ast |> testRunStatements |> printfn "Res VTable as List: %A"
-    0 // return an integer exit code
+let main (argv: string array) =
+    let parser = ArgumentParser.Create<CLIArguments>(programName = "RegExp interpreter")
+    let results = parser.Parse(argv)
+    let p = parser.ParseCommandLine argv
+    if argv.Length = 0 || results.IsUsageRequested then parser.PrintUsage() |> printfn "%s"
+    else
+        let input =
+            if p.Contains(InputFile) then System.IO.File.ReadAllText (results.GetResult InputFile)
+            elif p.Contains(InputString) then results.GetResult InputString
+            else failwith "No input code given"
+        let ast = parseString input
+        if p.Contains(Compute)
+            then
+                let initialState = { VariableTable = [] }
+                let res = runStatements ast initialState
+                printfn $"State: %A{res}"
+//        if p.Contains(ToDot)
+//        then ast |> astToDot (results.GetResult ToDot)  
+    0
