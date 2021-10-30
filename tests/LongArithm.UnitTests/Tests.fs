@@ -7,8 +7,8 @@ let tests =
     testSequenced <| testList "BigInt tests" [
         let a1 = 33343435L
         let a2 = 5065657577L
-        let b1 = "33343435" |> stringToBigInt
-        let b2 = "5065657577" |> stringToBigInt
+        let b1 = "33343435" |> parseBigInt
+        let b2 = "5065657577" |> parseBigInt
         
         let stopWatch = System.Diagnostics.Stopwatch()
         test "Sum test" {           

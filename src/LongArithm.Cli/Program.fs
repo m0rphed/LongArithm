@@ -6,8 +6,8 @@ open LongArithm
 open BigInt
 
 let testBigInt () =
-    let bigInt1 = "228" |> stringToBigInt
-    let bigInt2 = "-1337" |> stringToBigInt
+    let bigInt1 = "228" |> parseBigInt
+    let bigInt2 = "-1337" |> parseBigInt
     
     printfn $"Sum: {sum bigInt1 bigInt2 |> bigIntToString}"
     printfn $"Sub: {sub bigInt1 bigInt2 |> bigIntToString}"

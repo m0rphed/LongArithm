@@ -1,6 +1,7 @@
 namespace LongArithm.Interpreter
 
 open System.Numerics
+open LongArithm
 open LongArithm.Parser.AST
 open LongArithm.Interpreter.Types
 open LongArithm.Interpreter.Expressions
@@ -20,7 +21,7 @@ module Statements =
         let input = Console.ReadLine()
             
         let (|Int|_|) input =
-           match BigInteger.TryParse(input:string) with
+           match BigInt.tryParseBigInt (input:string) with
            | true, bigInteger -> Some(bigInteger)
            | _ -> None
 
@@ -80,9 +81,9 @@ module Statements =
         let rec loop acc state' =
             match (acc, state') with
             | count, s when count = n'    -> runStatements block s
-            | _, s                        -> runStatements block s |> loop (acc + 1I)
+            | _, s                        -> runStatements block s |> loop (acc + BigInt.big1)
         
-        loop 0I state
+        loop BigInt.big0 state
 
     and runStatement state s =
         state

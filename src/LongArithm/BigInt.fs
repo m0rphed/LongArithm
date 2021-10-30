@@ -1,5 +1,6 @@
 module LongArithm.BigInt
 
+open System
 open MyList
 open LongArithm
 
@@ -12,7 +13,6 @@ let intToMyList number =
         if n = 0 then remainder
         else go (n / 10) (Nodes(n % 10, remainder))
     go (number / 10) (Single(number % 10))
-
 
 [<Struct>]
 type MyBigInt =
@@ -27,6 +27,10 @@ type MyBigInt =
               else
                   failwith "Digits should be in range 0..9" }
 
+let big0 = MyBigInt (Positive, 0 |> intToMyList)
+let big1 = MyBigInt (Positive, 1 |> intToMyList)
+let negBig1 = MyBigInt (Negative, 1 |> intToMyList )
+
 let equal (x: MyBigInt) (y: MyBigInt) =
     if x.Sign <> y.Sign
        || MyList.length x.Digits <> MyList.length y.Digits then
@@ -34,6 +38,8 @@ let equal (x: MyBigInt) (y: MyBigInt) =
     else
         MyList.map2 (=) x.Digits y.Digits
         |> MyList.fold (&&) true
+        
+let notEqual (x: MyBigInt) (y: MyBigInt) = not (equal x y)
 
 let getSign (x: MyBigInt) = if x.Sign = Positive then 1 else -1
 
@@ -315,25 +321,35 @@ let toBinary (x: MyBigInt) =
     MyBigInt(x.Sign, go divd (Single(MyList.head rem)))
 
 // todo: should be a parser functions
-let stringToBigInt (n: string) =
-    let s =
-        if n.[0] = '-' then
-            Negative
-        else
-            Positive
-
-    let l = n |> List.ofSeq |> List.map string
-
-    let ml =
-        (if l.[0] = "+" || l.[0] = "-" then
-             l.[1..]
-         else
-             l)
-        |> List.map int
+let parseBigInt (input: string) =
+    let convert (ch: char) =
+        Int32.Parse (string ch)
+    
+    let digits =
+        input
+        |> List.ofSeq
+        |> List.map convert
         |> MyList.fromList
 
-    MyBigInt(s, ml)
+    MyBigInt(Positive, digits)
 
+exception BigIntParseError of string
+
+let tryParseBigInt (input: string) =
+    let tryConvert ch =
+        match Int32.TryParse(string ch) with
+        | true, res -> res
+        | false, _ -> BigIntParseError($"Expected digit, got: %c{ch}") |> raise
+    try
+        let digits =
+            input
+            |> List.ofSeq
+            |> List.map tryConvert
+            |> MyList.fromList
+        true, MyBigInt(Positive, digits)
+    with
+    | BigIntParseError _ ->
+        false, MyBigInt(Positive, Single 0)
 
 // todo: should be a parser functions
 let bigIntToString (n: MyBigInt) =
@@ -351,7 +367,7 @@ let negate (x: MyBigInt) =
     | Positive when x.Digits = Single 0 -> MyBigInt(Positive, x.Digits)
     | Positive ->  MyBigInt(Negative, x.Digits)
 
-let rec greater (x: MyList<int>) (y: MyList<int>) = // выводит true если первое число больше второго
+let rec private greater' (x: MyList<int>) (y: MyList<int>) = // выводит true если первое число больше второго
     match (x, y) with
     | Single a, Single b -> a > b
     | Single _, Nodes _ -> false         
@@ -360,7 +376,29 @@ let rec greater (x: MyList<int>) (y: MyList<int>) = // выводит true ес�
         let lengthX, lengthY = MyList.length x, MyList.length y
         match lengthX = lengthY with
         | false -> lengthX > lengthY
-        | true -> if hd1 <> hd2 then hd1 > hd2 else (greater tail1 tail2)
+        | true -> if hd1 <> hd2 then hd1 > hd2 else (greater' tail1 tail2)
+
+let greater (a: MyBigInt) (b: MyBigInt) =
+    match a.Sign, b.Sign with
+    | Negative, Positive -> false
+    | Positive, Negative -> true
+    | Positive, Positive ->
+        greater' a.Digits b.Digits
+    | Negative, Negative ->
+        not (greater' a.Digits b.Digits)
+
+let less (a: MyBigInt) (b: MyBigInt) =
+    not (greater a b)
+    
+let greaterOrEqual (a: MyBigInt) (b: MyBigInt) =
+    match equal a b with
+    | true -> true
+    | false -> greater a b
+    
+let lessOrEqual (a: MyBigInt) (b: MyBigInt) =
+    match equal a b with
+    | true -> true
+    | false -> less a b
 
 type MyBigInt with
     static member (+) (a, b: MyBigInt) = sum a b
@@ -368,4 +406,12 @@ type MyBigInt with
     static member (%) (a, b: MyBigInt) = rem a b
     static member (*) (a, b: MyBigInt) = mul a b
     static member (/) (a, b: MyBigInt) = div a b
-//let rec lessThan (x: MyList<int>) (y: MyList<int>)
+    
+    static member op_Equality (a, b: MyBigInt) = equal a b
+    static member op_Inequality (a, b: MyBigInt) = notEqual a b
+    static member op_GreaterThan (a, b: MyBigInt) = greater a b
+    static member op_LessThan (a, b: MyBigInt) = less a b
+    static member op_GreaterThanOrEqual (a, b: MyBigInt) = greaterOrEqual a b
+    static member op_LessThanOrEqual (a, b: MyBigInt) = lessOrEqual a b
+    
+    override this.ToString() = bigIntToString this

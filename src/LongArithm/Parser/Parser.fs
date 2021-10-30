@@ -26,7 +26,7 @@ module Parsing =
     // then construct an Integer Value from it
     let pBigInt: Parser<Value, Unit> =
         many1Satisfy isDigit
-            |>> stringToBigInt
+            |>> parseBigInt
             .>> spaces
             |>> Int
 
