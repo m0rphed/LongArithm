@@ -57,7 +57,9 @@ module Operators =
     
     let unaryIntOperation op x =
         match x with
-        | Int num -> Int (op num)
+        | Int num ->
+            let newNum = (op num)
+            Int newNum
         | other -> failwith $"Operator {op} expected 'Int' type; instead got: {other}"
         
     let abs = unaryIntOperation BigInt.abs

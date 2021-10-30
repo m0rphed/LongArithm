@@ -41,4 +41,5 @@ module Expressions =
         | UnaryOp (op', x)      -> applyUnaryOp state op' x
 
     let evaluateCondition cond state =
+        // bug: negate not always work in condition
         cond |> evaluateExpr state |> interpretConditionalValue

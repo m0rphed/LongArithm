@@ -382,8 +382,7 @@ let greater (a: MyBigInt) (b: MyBigInt) =
     match a.Sign, b.Sign with
     | Negative, Positive -> false
     | Positive, Negative -> true
-    | Positive, Positive ->
-        greater' a.Digits b.Digits
+    | Positive, Positive -> greater' a.Digits b.Digits
     | Negative, Negative ->
         not (greater' a.Digits b.Digits)
 
