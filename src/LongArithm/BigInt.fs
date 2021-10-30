@@ -231,17 +231,17 @@ let divOrRem (x: MyBigInt) (y: MyBigInt) =
 
             let f = (mul (MyBigInt(Positive, y)) r)
 
-            if notLesser x f.Digits then
-                down <- ((up + down) / 2)
-            else
-                up <- ((up + down) / 2)
+            if notLesser x f.Digits
+            then down <- ((up + down) / 2)
+            else up <- ((up + down) / 2)
 
         let quot = (up + down) / 2
 
-        let quotXres =
-            mul (MyBigInt(Positive, y)) (MyBigInt(Positive, Single quot))
+        let quotXRes =
+            mul (MyBigInt(Positive, y))
+                (MyBigInt(Positive, Single quot))
 
-        let remainder = sub (MyBigInt(Positive, x)) quotXres
+        let remainder = sub (MyBigInt(Positive, x)) quotXRes
         (quot, remainder.Digits)
 
     let rSign = setSign (getSign x * getSign y)
@@ -257,10 +257,9 @@ let divOrRem (x: MyBigInt) (y: MyBigInt) =
                     let newC = c + 1 // ...использовать divide и добавляем нули, если было занято более 1 разряда за раз
 
                     let newRes =
-                        if newC >= 2 then
-                            Nodes(0, result)
-                        else
-                            result
+                        if newC >= 2
+                        then Nodes(0, result)
+                        else result
 
                     let newDividend =
                         MyList.concat dividend (Single x1) |> delZeroHead
@@ -270,8 +269,7 @@ let divOrRem (x: MyBigInt) (y: MyBigInt) =
                            && notLesser newDividend y.Digits) then
                         let m, rem = divide newDividend y.Digits
                         (rem, Nodes(m, newRes), divisorLen, 0)
-                    else
-                        (newDividend, newRes, divisorLen, c + 1))
+                    else (newDividend, newRes, divisorLen, c + 1))
                 (Single 0, Single 0, divisorLen, 0)
                 x.Digits
 
@@ -326,7 +324,6 @@ let toBinary (x: MyBigInt) =
 
     MyBigInt(x.Sign, go divd (Single(MyList.head rem)))
 
-// todo: should be a parser functions
 let parseBigInt (input: string) =
     let convert (ch: char) =
         Int32.Parse (string ch)
@@ -404,7 +401,6 @@ type MyBigInt with
     static member (%) (a, b: MyBigInt) = rem a b
     static member (*) (a, b: MyBigInt) = mul a b
     static member (/) (a, b: MyBigInt) = div a b
-    
     static member op_Equality (a, b: MyBigInt) = equal a b
     static member op_Inequality (a, b: MyBigInt) = notEqual a b
     static member op_GreaterThan (a, b: MyBigInt) = greater a b
