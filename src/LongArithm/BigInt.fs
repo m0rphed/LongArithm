@@ -26,6 +26,12 @@ type MyBigInt =
                   b
               else
                   failwith "Digits should be in range 0..9" }
+        
+    override this.ToString() =
+        let r =
+            this.Digits |> MyList.fold (fun acc x -> acc + string x) ""
+
+        if this.Sign = Negative then "-" + r else r
 
 let big0 = MyBigInt (Positive, 0 |> intToMyList)
 let big1 = MyBigInt (Positive, 1 |> intToMyList)
@@ -351,14 +357,6 @@ let tryParseBigInt (input: string) =
     | BigIntParseError _ ->
         false, MyBigInt(Positive, Single 0)
 
-// todo: should be a parser functions
-let bigIntToString (n: MyBigInt) =
-    let r =
-        n.Digits
-        |> MyList.fold (fun acc x -> acc + string x) ""
-
-    if n.Sign = Negative then "-" + r else r
-
 let abs (x: MyBigInt) = MyBigInt(Positive, x.Digits)
 
 let negate (x: MyBigInt) =
@@ -367,7 +365,8 @@ let negate (x: MyBigInt) =
     | Positive when x.Digits = Single 0 -> MyBigInt(Positive, x.Digits)
     | Positive ->  MyBigInt(Negative, x.Digits)
 
-let rec private greater' (x: MyList<int>) (y: MyList<int>) = // выводит true если первое число больше второго
+/// выводит true если первое число больше второго
+let rec private greater' (x: MyList<int>) (y: MyList<int>) =
     match (x, y) with
     | Single a, Single b -> a > b
     | Single _, Nodes _ -> false         
@@ -412,5 +411,3 @@ type MyBigInt with
     static member op_LessThan (a, b: MyBigInt) = less a b
     static member op_GreaterThanOrEqual (a, b: MyBigInt) = greaterOrEqual a b
     static member op_LessThanOrEqual (a, b: MyBigInt) = lessOrEqual a b
-    
-    override this.ToString() = bigIntToString this

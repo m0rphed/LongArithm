@@ -22,12 +22,12 @@ module Operators =
         | Int a, Int b -> Bool (comparison a b)
         | xy -> failwith $"Comparison expected 'Int' type; instead got:{xy}"
 
-    let eq  = compare (=)
-    let neq = compare (<>)
-    let gt  = compare (>)
-    let lt  = compare (<)
-    let gte = compare (>=)
-    let lte = compare (<=)
+    let eq  = compare BigInt.equal          // (=)
+    let neq = compare BigInt.notEqual       // (<>)
+    let gt  = compare BigInt.greater        // (>)
+    let lt  = compare BigInt.less           // (<)
+    let gte = compare BigInt.greaterOrEqual // (>=)
+    let lte = compare BigInt.lessOrEqual    // (<=)
     
     let junction func x y =
         match x, y with
@@ -57,9 +57,7 @@ module Operators =
     
     let unaryIntOperation op x =
         match x with
-        | Int num ->
-            let newNum = (op num)
-            Int newNum
+        | Int num -> Int (op num)
         | other -> failwith $"Operator {op} expected 'Int' type; instead got: {other}"
         
     let abs = unaryIntOperation BigInt.abs

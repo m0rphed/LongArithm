@@ -1,12 +1,10 @@
 namespace LongArithm.Interpreter
 
-open System.Numerics
+open System
 open LongArithm
 open LongArithm.Parser.AST
 open LongArithm.Interpreter.Types
 open LongArithm.Interpreter.Expressions
-
-open System
 
 module Statements =
     let display exp state =
@@ -21,12 +19,12 @@ module Statements =
         let input = Console.ReadLine()
             
         let (|Int|_|) input =
-           match BigInt.tryParseBigInt (input:string) with
+           match BigInt.tryParseBigInt (input: string) with
            | true, bigInteger -> Some(bigInteger)
            | _ -> None
 
         let (|Bool|_|) input =
-           match Boolean.TryParse(input:string) with
+           match Boolean.TryParse (input: string) with
            | true, bool -> Some(bool)
            | _ -> None
         
@@ -49,54 +47,22 @@ module Statements =
             | Some elseBlock  -> runStatements elseBlock state
             | None              -> state
 
-    and whileloop cond block state =
+    and whileLoop cond block state =
         if (evaluateCondition cond state) then
             let rec innerLoop innerState =
-                if (cond |> evaluateExpr innerState |> interpretConditionalValue) then 
-                    runStatements block innerState |> innerLoop
-                else
-                    innerState
-                
+                if (cond |> evaluateExpr innerState |> interpretConditionalValue)
+                then runStatements block innerState |> innerLoop
+                else innerState
             innerLoop state
-        else
-            state
+        else state
     
-    and dowhile cond block state =
-        let updatedState = runStatements block state
-        
-        if  (evaluateCondition cond updatedState) then
-            let rec innerLoop innerState =
-                if (evaluateCondition cond innerState) then 
-                    runStatements block innerState
-                    |> innerLoop
-                else
-                    innerState
-                
-            innerLoop updatedState 
-        else
-            updatedState
-    
-    and repeat n block state =
-        let n' = interpretIntegerValue n
-        let rec loop acc state' =
-            match (acc, state') with
-            | count, s when count = n'    -> runStatements block s
-            | _, s                        -> runStatements block s |> loop (acc + BigInt.big1)
-        
-        loop BigInt.big0 state
-
     and runStatement state s =
         state
         |>  match s with
             | Print exp                             -> display exp
             | Set (name, exp)                       -> set name exp
             | If (cond, block, elseBlockOption)     -> conditional cond block elseBlockOption
-            | While (cond, block)                   -> whileloop cond block
-//            | READ name                             -> read name
-//            | COMPUTE (name, exp)                   -> compute name exp
-//            | DOWHILE (block, cond)                 -> dowhile cond block
-//            | REPEAT (block, count)                 -> repeat (evaluateExpression state count) block
-//            | HALT                                  -> id
+            | While (cond, block)                   -> whileLoop cond block
 
     and runStatements statements state =
         match statements with

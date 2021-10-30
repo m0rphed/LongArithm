@@ -9,10 +9,10 @@ let testBigInt () =
     let bigInt1 = "228" |> parseBigInt
     let bigInt2 = "-1337" |> parseBigInt
     
-    printfn $"Sum: {sum bigInt1 bigInt2 |> bigIntToString}"
-    printfn $"Sub: {sub bigInt1 bigInt2 |> bigIntToString}"
-    printfn $"Mul: {mul bigInt1 bigInt2 |> bigIntToString}"
-    printfn $"Div: {div bigInt1 bigInt2 |> bigIntToString}"
+    printfn $"Sum: {(sum bigInt1 bigInt2).ToString()}"
+    printfn $"Sub: {(sub bigInt1 bigInt2).ToString()}"
+    printfn $"Mul: {(mul bigInt1 bigInt2).ToString()}"
+    printfn $"Div: {(div bigInt1 bigInt2).ToString()}"
 
 // New Parser -- tests
 open LongArithm.Parser

@@ -1,13 +1,11 @@
 namespace LongArithm.Parser
 
 open FParsec
+open AST
 open LongArithm.BigInt
-
+    
 [<AutoOpen>]
 module Parsing =
-    open FParsec
-    open AST
-    
     let pWord str = pstring str .>> spaces
 
     // A combinator that transforms a parser by requiring that it

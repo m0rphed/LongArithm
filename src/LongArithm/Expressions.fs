@@ -13,9 +13,9 @@ module Expressions =
 
     let printValue value =
         match value with
-        | Int bigInt -> printfn $"%A{bigInt}"
-        | Bool b    -> printfn $"%b{b}"
-        | Str s  -> printfn $"%s{s}"
+        | Int bigInt    -> printfn $"%A{bigInt}"
+        | Bool b        -> printfn $"%b{b}"
+        | Str s         -> printfn $"%s{s}"
 
     let interpretConditionalValue = function
         | Bool b    -> b
@@ -38,8 +38,9 @@ module Expressions =
         | Literal value         -> value
         | Variable name         -> lookupVariable state name
         | BinaryOp (e1, op, e2) -> applyBinOp state op e1 e2
-        | UnaryOp (op', x)      -> applyUnaryOp state op' x
+        | UnaryOp (op, x)      -> applyUnaryOp state op x
 
     let evaluateCondition cond state =
-        // bug: negate not always work in condition
-        cond |> evaluateExpr state |> interpretConditionalValue
+        cond
+        |> evaluateExpr state
+        |> interpretConditionalValue
