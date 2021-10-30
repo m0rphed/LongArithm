@@ -1,5 +1,6 @@
 namespace LongArithm.Interpreter
 
+open LongArithm
 open LongArithm.Parser.AST
 
 module Operators =
@@ -59,8 +60,8 @@ module Operators =
         | Int num -> Int (op num)
         | other -> failwith $"Operator {op} expected 'Int' type; instead got: {other}"
         
-    let abs = unaryIntOperation System.Numerics.BigInteger.Abs
-    let negate = unaryIntOperation System.Numerics.BigInteger.Negate
+    let abs = unaryIntOperation BigInt.abs
+    let negate = unaryIntOperation BigInt.negate
 
     let mapUnaryOperator = function
         | Abs       -> abs

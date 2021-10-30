@@ -1,6 +1,7 @@
 namespace LongArithm.Parser
 
 open FParsec
+open LongArithm.BigInt
 
 [<AutoOpen>]
 module Parsing =
@@ -25,7 +26,7 @@ module Parsing =
     // then construct an Integer Value from it
     let pBigInt: Parser<Value, Unit> =
         many1Satisfy isDigit
-            |>> System.Numerics.BigInteger.Parse
+            |>> stringToBigInt
             .>> spaces
             |>> Int
 

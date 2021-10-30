@@ -1,12 +1,13 @@
 namespace LongArithm.Parser
 
 open FParsec
+open LongArithm.BigInt
 
 module AST =
     type Name = string
 
     type Value =
-        | Int of System.Numerics.BigInteger
+        | Int of MyBigInt
         | Str of string
         | Bool of bool
     

@@ -8,13 +8,9 @@ type Sign =
     | Negative
 
 let intToMyList number =
-
     let rec go n remainder =
-        if n = 0 then
-            remainder
-        else
-            go (n / 10) (Nodes(n % 10, remainder))
-
+        if n = 0 then remainder
+        else go (n / 10) (Nodes(n % 10, remainder))
     go (number / 10) (Single(number % 10))
 
 
@@ -349,6 +345,12 @@ let bigIntToString (n: MyBigInt) =
 
 let abs (x: MyBigInt) = MyBigInt(Positive, x.Digits)
 
+let negate (x: MyBigInt) =
+    match x.Sign with
+    | Negative -> MyBigInt(Positive, x.Digits)
+    | Positive when x.Digits = Single 0 -> MyBigInt(Positive, x.Digits)
+    | Positive ->  MyBigInt(Negative, x.Digits)
+
 let rec greater (x: MyList<int>) (y: MyList<int>) = // выводит true если первое число больше второго
     match (x, y) with
     | Single a, Single b -> a > b
@@ -360,4 +362,10 @@ let rec greater (x: MyList<int>) (y: MyList<int>) = // выводит true ес�
         | false -> lengthX > lengthY
         | true -> if hd1 <> hd2 then hd1 > hd2 else (greater tail1 tail2)
 
+type MyBigInt with
+    static member (+) (a, b: MyBigInt) = sum a b
+    static member (-) (a, b: MyBigInt) = sub a b
+    static member (%) (a, b: MyBigInt) = rem a b
+    static member (*) (a, b: MyBigInt) = mul a b
+    static member (/) (a, b: MyBigInt) = div a b
 //let rec lessThan (x: MyList<int>) (y: MyList<int>)
