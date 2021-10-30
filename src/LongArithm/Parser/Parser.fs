@@ -1,5 +1,7 @@
 namespace LongArithm.Parser
 
+open FParsec
+
 [<AutoOpen>]
 module Parsing =
     open FParsec
@@ -72,38 +74,55 @@ module Parsing =
     // OperatorPrecedenceParser instance
     do intOperatorParser.TermParser <- intTerm
     
-    let createOperation op x y = BinaryOp (x, op, y)
-
+    type Op = | BinOp of BinOperator | UnOp of UnaryOperator
+    
+    let createBinOperation op x y = BinaryOp (x, op, y)
+    
+    let createUnaryOperation op x = UnaryOp (op, x)
+    
     type OperatorDetails = {  Symbol: string;
                               Precedence: int;
-                              Operator: BinOperator }
+                              Operator: Op }
 
     let intOperators = [
-        {Symbol = ">"; Precedence = 1; Operator = Gt}
-        {Symbol = "<"; Precedence = 1; Operator = Lt}
-        {Symbol = ">="; Precedence = 1; Operator = Gte}
-        {Symbol = "<="; Precedence = 1; Operator = Lte}
-        {Symbol = "=="; Precedence = 1; Operator = Eq}
-        {Symbol = "!="; Precedence = 1; Operator = Neq}
-        {Symbol = "+"; Precedence = 2; Operator = Add}
-        {Symbol = "-"; Precedence = 2; Operator = Sub}
-        {Symbol = "*"; Precedence = 3; Operator = Mult}
-        {Symbol = "/"; Precedence = 3; Operator = Div}
-        {Symbol = "%"; Precedence = 3; Operator = Mod}
+        {Symbol = ">";    Precedence = 1; Operator = BinOp Gt}
+        {Symbol = "<";    Precedence = 1; Operator = BinOp Lt}
+        {Symbol = ">=";   Precedence = 1; Operator = BinOp Gte}
+        {Symbol = "<=";   Precedence = 1; Operator = BinOp Lte}
+        {Symbol = "==";   Precedence = 1; Operator = BinOp Eq}
+        {Symbol = "!=";   Precedence = 1; Operator = BinOp Neq}
+        {Symbol = "+";    Precedence = 2; Operator = BinOp Add}
+        {Symbol = "-";    Precedence = 2; Operator = BinOp Sub}
+        {Symbol = "*";    Precedence = 3; Operator = BinOp Mult}
+        {Symbol = "/";    Precedence = 3; Operator = BinOp Div}
+        {Symbol = "%";    Precedence = 3; Operator = BinOp Mod}
+        {Symbol = "-";    Precedence = 1; Operator = UnOp Negate}
+        {Symbol = "abs";  Precedence = 1; Operator = UnOp Abs}
     ]
 
     let addOperators (precedenceParser : OperatorPrecedenceParser<_,_,_>) operatorTable =
         operatorTable
         |> List.iter (fun details ->
-            let operator =
-              InfixOperator(
-                  details.Symbol,
-                  spaces,
-                  details.Precedence,
-                  Associativity.Left,
-                  createOperation details.Operator
-              )
-            precedenceParser.AddOperator(operator))
+            match details.Operator with
+            | BinOp op ->
+                InfixOperator(
+                    details.Symbol,
+                    spaces,
+                    details.Precedence,
+                    Associativity.Left,
+                    createBinOperation op
+                )
+                |> precedenceParser.AddOperator
+            | UnOp op ->
+                PrefixOperator(
+                    details.Symbol,
+                    spaces,
+                    details.Precedence,
+                    true,
+                    createUnaryOperation op
+                )
+                |> precedenceParser.AddOperator
+            )
 
 
     do addOperators intOperatorParser intOperators
@@ -141,12 +160,12 @@ module Parsing =
     do strOperatorParser.TermParser <- strTerm
     
     let boolOperators = [
-        {Symbol = "and"; Precedence = 2; Operator =  And}
-        {Symbol = "or"; Precedence = 1; Operator = Or}
+        {Symbol = "and"; Precedence = 2; Operator = BinOp And}
+        {Symbol = "or"; Precedence = 1; Operator = BinOp Or}
     ]
 
     let stringOperators = [
-        {Symbol = "++"; Precedence = 1; Operator = StrConcat}
+        {Symbol = "++"; Precedence = 1; Operator = BinOp StrConcat}
     ]
 
     do addOperators boolOperatorParser boolOperators

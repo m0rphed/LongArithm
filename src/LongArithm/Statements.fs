@@ -9,11 +9,11 @@ open System
 
 module Statements =
     let display exp state =
-        printValue (evaluateExpression state exp)
+        printValue (evaluateExpr state exp)
         state
 
     let set name exp state =
-        let eValue = evaluateExpression state exp
+        let eValue = evaluateExpr state exp
         {state with VariableTable = (name, eValue) :: state.VariableTable}
     
     let read name state =
@@ -37,7 +37,7 @@ module Statements =
         {state with VariableTable = (name, value) :: state.VariableTable}
 
     let compute name exp state =
-        let eValue = evaluateExpression state exp
+        let eValue = evaluateExpr state exp
         {state with VariableTable = (name, eValue) :: state.VariableTable}
     
     let rec conditional cond block elseBlockOption state =
@@ -51,7 +51,7 @@ module Statements =
     and whileloop cond block state =
         if (evaluateCondition cond state) then
             let rec innerLoop innerState =
-                if (cond |> evaluateExpression innerState |> interpretConditionalValue) then 
+                if (cond |> evaluateExpr innerState |> interpretConditionalValue) then 
                     runStatements block innerState |> innerLoop
                 else
                     innerState

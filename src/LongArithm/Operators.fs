@@ -2,7 +2,8 @@ namespace LongArithm.Interpreter
 
 open LongArithm.Parser.AST
 
-module BinOperators =
+module Operators =
+    (* Binary operators functions *)
     let binaryIntOperation op x y =
         match x, y with
         | Int a, Int b -> Int (op a b)
@@ -51,6 +52,8 @@ module BinOperators =
         | Or        -> disjunction
         | StrConcat -> failwith "Operator 'String Concat' currently not implement :("
     
+    (* Unary operators: Abs, Negate *)
+    
     let unaryIntOperation op x =
         match x with
         | Int num -> Int (op num)
@@ -59,6 +62,6 @@ module BinOperators =
     let abs = unaryIntOperation System.Numerics.BigInteger.Abs
     let negate = unaryIntOperation System.Numerics.BigInteger.Negate
 
-    let mapOperator = function
+    let mapUnaryOperator = function
         | Abs       -> abs
-        | Negate       -> negate
+        | Negate    -> negate

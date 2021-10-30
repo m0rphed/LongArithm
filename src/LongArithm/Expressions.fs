@@ -2,7 +2,7 @@ namespace LongArithm.Interpreter
 
 open LongArithm.Parser.AST
 open LongArithm.Interpreter.Types
-open LongArithm.Interpreter.BinOperators
+open LongArithm.Interpreter.Operators
 
 module Expressions =
     let lookupVariable state name =
@@ -24,22 +24,21 @@ module Expressions =
     let interpretIntegerValue = function
         | Int i -> i
         | _     -> 0I
-        
-    let rec applyOperator state op (args: list<Expr>) =
-        let reduceToValue exp =
-            match exp with
-            | Literal value         -> value
-            | Variable name         -> lookupVariable state name
-            | BinaryOp (x, op', y) -> applyOperator state op' [x; y]
-            | _ -> failwith "todo"
-        let e1, e2 = args.[0], args.[1]
-        mapBinOperator op (reduceToValue e1) (reduceToValue e2)
 
-    let rec evaluateExpression state = function
-        | Literal value -> value
-        | Variable name -> lookupVariable state name
-        | BinaryOp (e1, op, e2) -> applyOperator state op [e1; e2]
-        | _ -> failwith "todo"
+    let rec evaluateExpr state expr =
+        let applyBinOp state op first second =
+            mapBinOperator op
+                (evaluateExpr state first)
+                (evaluateExpr state second)
+        
+        let applyUnaryOp state op expr =
+            mapUnaryOperator op (evaluateExpr state expr)
+
+        match expr with
+        | Literal value         -> value
+        | Variable name         -> lookupVariable state name
+        | BinaryOp (e1, op, e2) -> applyBinOp state op e1 e2
+        | UnaryOp (op', x)      -> applyUnaryOp state op' x
 
     let evaluateCondition cond state =
-        cond |> evaluateExpression state |> interpretConditionalValue
+        cond |> evaluateExpr state |> interpretConditionalValue
