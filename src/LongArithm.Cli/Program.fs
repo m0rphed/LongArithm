@@ -2,12 +2,12 @@ module LongArithm.Cli.Main
 
 // BigInt on List -- tests
 
+open System.Collections.Generic
 open Argu
 
 open LongArithm.Parser
-open LongArithm.Interpreter.Types
+open LongArithm.Interpreter
 open LongArithm.Interpreter.Statements
-open FParsec
     
 type CLIArguments =
     | InputFile of file: string
@@ -37,7 +37,7 @@ let main (argv: string array) =
         let ast = parseString input
         if p.Contains(Compute)
             then
-                let initialState = { VariableTable = [] }
+                let initialState = { VariableTable = [] ; OutputBuffer = Queue<_>()}
                 let res = runStatements ast initialState
                 printfn $"State: %A{res}"
     

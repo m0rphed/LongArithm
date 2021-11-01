@@ -3,12 +3,24 @@ namespace LongArithm.Interpreter
 open System
 open LongArithm.BigInt
 open LongArithm.Parser.AST
-open LongArithm.Interpreter.Types
+open LongArithm.Interpreter
 open LongArithm.Interpreter.Expressions
 
 module Statements =
+    let private exactValueStr literal =
+        match literal with
+        | Int myBigInt -> $"%A{myBigInt}"
+        | Bool bool -> $"%b{bool}"
+        | Str str -> str
+    
     let display exp state =
-        printValue (evaluateExpr state exp)
+        let evalResult = evaluateExpr state exp
+        // save value to print buffer
+        evalResult
+        |> exactValueStr
+        |> state.OutputBuffer.Enqueue
+        
+        printValue evalResult
         state
 
     let set name exp state =

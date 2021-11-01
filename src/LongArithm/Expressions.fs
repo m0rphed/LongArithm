@@ -2,8 +2,7 @@ namespace LongArithm.Interpreter
 
 open LongArithm.BigInt
 open LongArithm.Parser.AST
-open LongArithm.Interpreter.Types
-open LongArithm.Interpreter.Operators
+open LongArithm.Interpreter
 
 module Expressions =
     let lookupVariable state name =
@@ -28,12 +27,13 @@ module Expressions =
 
     let rec evaluateExpr state expr =
         let applyBinOp state op first second =
-            mapBinOperator op
+            Operators.mapBinOperator op
                 (evaluateExpr state first)
                 (evaluateExpr state second)
         
         let applyUnaryOp state op expr =
-            mapUnaryOperator op (evaluateExpr state expr)
+            Operators.mapUnaryOperator op
+                (evaluateExpr state expr)
 
         match expr with
         | Literal value         -> value

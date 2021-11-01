@@ -1,6 +1,8 @@
 namespace LongArithm.Interpreter
 
 open LongArithm.Parser.AST
+open System.Collections.Generic
 
-module Types =
-    type ProgramState = {VariableTable: (Name * Value) list}
+type ProgramState =
+    { VariableTable: (Name * Value) list
+      OutputBuffer: Queue<string> }
