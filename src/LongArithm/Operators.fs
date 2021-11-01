@@ -1,6 +1,6 @@
 namespace LongArithm.Interpreter
 
-open LongArithm
+open LongArithm.BigInt
 open LongArithm.Parser.AST
 
 module Operators =

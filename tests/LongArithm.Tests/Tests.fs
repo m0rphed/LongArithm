@@ -3,7 +3,7 @@ namespace Tests
 module ``BigInt Tests`` =
     open Xunit
     open FsUnit.Xunit
-    open LongArithm
+    open LongArithm.BigInt
     open System
 
     let a1 = 33343435L

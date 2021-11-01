@@ -1,5 +1,6 @@
 namespace LongArithm.Interpreter
 
+open LongArithm.BigInt
 open LongArithm.Parser.AST
 open LongArithm.Interpreter.Types
 open LongArithm.Interpreter.Operators
@@ -23,7 +24,7 @@ module Expressions =
     
     let interpretIntegerValue = function
         | Int i -> i
-        | _     -> LongArithm.BigInt.big0
+        | _     -> BigInt.big0
 
     let rec evaluateExpr state expr =
         let applyBinOp state op first second =

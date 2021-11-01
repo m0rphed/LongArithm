@@ -1,7 +1,7 @@
 namespace LongArithm.Interpreter
 
 open System
-open LongArithm
+open LongArithm.BigInt
 open LongArithm.Parser.AST
 open LongArithm.Interpreter.Types
 open LongArithm.Interpreter.Expressions

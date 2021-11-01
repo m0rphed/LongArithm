@@ -23,6 +23,17 @@ module MyList =
             action v
             nextNode |> iter action
 
+    let rec filter condition list =
+        match list with
+        | Single v as myList ->
+            if not (condition v)
+            then failwith "List can not be empty"
+            else myList 
+        | Nodes (v, nextNode) ->
+            if condition v
+            then Nodes (v, (filter condition nextNode))
+            else filter condition nextNode
+
     /// Map implemented for `MyList`
     let rec map mapping list =
         match list with

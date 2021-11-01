@@ -1,9 +1,7 @@
 module LongArithm.Cli.Main
 
-open LongArithm
-
 // BigInt on List -- tests
-open BigInt
+
 open Argu
 
 open LongArithm.Parser
@@ -42,6 +40,8 @@ let main (argv: string array) =
                 let initialState = { VariableTable = [] }
                 let res = runStatements ast initialState
                 printfn $"State: %A{res}"
-//        if p.Contains(ToDot)
-//        then ast |> astToDot (results.GetResult ToDot)  
+    
+    (* todo: do we need toDot function or not ?
+            if p.Contains(ToDot)
+            then ast |> astToDot (results.GetResult ToDot) *)  
     0
