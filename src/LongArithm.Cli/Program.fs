@@ -1,7 +1,5 @@
 module LongArithm.Cli.Main
 
-// BigInt on List -- tests
-
 open System.Collections.Generic
 open Argu
 
@@ -13,7 +11,6 @@ type CLIArguments =
     | InputFile of file: string
     | InputString of code: string
     | Compute
-    //| ToDot of output: string
 
     interface IArgParserTemplate with
         member s.Usage =
@@ -21,11 +18,11 @@ type CLIArguments =
             | InputFile _ -> "File with code"
             | InputString _ -> "String of code" 
             | Compute -> "Return the result of interpretation of given code"
-            //| ToDot _ -> "Generates dot code of syntax tree to the given file"
+           
 
 [<EntryPoint>]
 let main (argv: string array) =
-    let parser = ArgumentParser.Create<CLIArguments>(programName = "RegExp interpreter")
+    let parser = ArgumentParser.Create<CLIArguments>(programName = "Long Arithm Interpreter")
     let results = parser.Parse(argv)
     let p = parser.ParseCommandLine argv
     if argv.Length = 0 || results.IsUsageRequested then parser.PrintUsage() |> printfn "%s"
@@ -40,8 +37,4 @@ let main (argv: string array) =
                 let initialState = { VariableTable = [] ; OutputBuffer = Queue<_>()}
                 let res = runStatements ast initialState
                 printfn $"State: %A{res}"
-    
-    (* todo: do we need toDot function or not ?
-            if p.Contains(ToDot)
-            then ast |> astToDot (results.GetResult ToDot) *)  
     0

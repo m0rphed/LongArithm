@@ -6,7 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="MyList.fs" />
-    <Compile Include="MyString.fs" />
     <Compile Include="BigInt.fs" />
     
     <Compile Include="AST.fs" />

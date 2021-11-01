@@ -233,7 +233,6 @@ module BigInt =
             let remainder = sub (MyBigInt(Positive, x)) quotXRes
             (quotient, remainder.Digits)
 
-        // let rSign = setSign (getSign x * getSign y) // todo: what is this?
         if y.Digits = Single 0 then raise (BigIntError "Division by zero")
         let divisorLen = MyList.length y.Digits
         let acc = (Single 0, Single 0, divisorLen, 0)
