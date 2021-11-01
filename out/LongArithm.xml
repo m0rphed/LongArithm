@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doc>
+<assembly><name>LongArithm</name></assembly>
+<members>
+<member name="T:LongArithm.MyList.MyList`1">
+<summary>
+ Generic List implementation &quot;from scratch&quot;;
+ `MyList` must be nonempty (always contains a value)
+</summary>
+</member>
+<member name="M:LongArithm.MyList.MyList.qsort``1(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean}},LongArithm.MyList.MyList{``0})">
+<summary>
+ Quicksort implemented for MyList
+</summary>
+</member>
+<member name="M:LongArithm.MyList.MyList.toList``1(LongArithm.MyList.MyList{``0})">
+<summary>
+ Converts MyList to nonempty list
+</summary>
+</member>
+<member name="M:LongArithm.MyList.MyList.fromList``1(Microsoft.FSharp.Collections.FSharpList{``0})">
+<summary>
+ Converts from list to nonempty MyList
+</summary>
+</member>
+<member name="M:LongArithm.MyList.MyList.concat``1(LongArithm.MyList.MyList{``0},LongArithm.MyList.MyList{``0})">
+<summary>
+ Combines two lists of the same type into one
+</summary>
+</member>
+<member name="M:LongArithm.MyList.MyList.length``1(LongArithm.MyList.MyList{``0})">
+<summary>
+ Returns length of the list
+</summary>
+</member>
+<member name="M:LongArithm.MyList.MyList.fold``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,``0}},``0,LongArithm.MyList.MyList{``1})">
+<summary>
+ Fold implemented for MyList
+</summary>
+</member>
+<member name="M:LongArithm.MyList.MyList.map``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},LongArithm.MyList.MyList{``0})">
+<summary>
+ Map implemented for `MyList`
+</summary>
+</member>
+<member name="T:LongArithm.MyList.MyList">
+<summary>
+ Implementation of std. list function for MyList
+</summary>
+</member>
+<member name="M:LongArithm.BigInt.greater'(LongArithm.MyList.MyList{System.Int32},LongArithm.MyList.MyList{System.Int32})">
+<summary>
+ выводит true если первое число больше второго
+</summary>
+</member>
+<member name="P:LongArithm.Interpreter.Operators.add">
+<summary>
+ Addition of two integers
+</summary>
+</member>
+</members>
+</doc>
