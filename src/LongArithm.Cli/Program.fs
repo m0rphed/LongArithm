@@ -1,25 +1,17 @@
 module LongArithm.Cli.Main
 
-open System
-open System.Collections.Generic
 open Argu
-
-open LongArithm.Parser
 open LongArithm.Interpreter
-open LongArithm.Interpreter.Statements
     
 type CLIArguments =
     | InputFile of file: string
     | InputString of code: string
-    | Compute
 
     interface IArgParserTemplate with
         member s.Usage =
             match s with
             | InputFile _ -> "File with code"
             | InputString _ -> "String of code" 
-            | Compute -> "Return the result of interpretation of given code"
-           
 
 [<EntryPoint>]
 let main (argv: string array) =

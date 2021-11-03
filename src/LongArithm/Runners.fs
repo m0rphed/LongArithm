@@ -13,7 +13,7 @@ module Runners =
         try
             let ast = parseString input
             // log parsing results
-            Highlighting.logOK
+            Highlighting.logOk
                 $"Finished parsing of text: {_input}"
                 $"Abstract Syntax Tree:\n\t%A{ast}"
 
@@ -21,7 +21,7 @@ module Runners =
             printfn "\nRunning ...\n___\n"
 
             let res = runStatements ast initialState
-            Highlighting.logOK "Succeeded!" $"Result {res}"
+            Highlighting.logOk "Succeeded!" $"Result: {res}"
             // return computed result
             Ok res
         with
@@ -37,7 +37,7 @@ module Runners =
         let _input = $"\n_________\n{input}\n_________\n"
         let ast = parseString input
         // log parsing results
-        Highlighting.logOK
+        Highlighting.logOk
             $"Finished parsing of text: {_input}"
             $"Abstract Syntax Tree:\n\t%A{ast}"
 
@@ -45,7 +45,7 @@ module Runners =
         printfn "\nRunning ...\n___\n"
 
         let res = runStatements ast initialState
-        Highlighting.logOK "Succeeded!" $"Result {res}"
+        Highlighting.logOk "Succeeded!" $"Result {res}"
         // return computed result
         res
     

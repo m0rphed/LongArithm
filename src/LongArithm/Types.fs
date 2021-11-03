@@ -16,29 +16,31 @@ exception InterpreterRuntimeError of string
 
 /// Basic highlighting
 module Highlighting =
-    let magenta = ConsoleColor.Magenta
-    let green = ConsoleColor.Green
-    let darkGreen = ConsoleColor.DarkRed
-    let cyan = ConsoleColor.Cyan
-    let yellow = ConsoleColor.Yellow
-    let red = ConsoleColor.Red
+    let log =
+        let lockObj = obj()
+        fun color str ->
+            lock lockObj (fun _ ->
+                Console.ForegroundColor <- color
+                printfn $"%s{str}"
+                Console.ResetColor())
     
-    let logOK header result =
-        Console.ForegroundColor <- magenta
-        printfn $"=> %s{header}\n"
-        Console.ForegroundColor <- green
-        printfn "=> Done:"
-        Console.ForegroundColor <- cyan
-        printfn $"%s{result.ToString()}"
-        Console.ResetColor()
+    
+    let red = ConsoleColor.Red
+    let yellow = ConsoleColor.Yellow
+    let green = ConsoleColor.Green
+
+    let darkRed = ConsoleColor.DarkRed
+    let darkYellow = ConsoleColor.DarkYellow
+    let darkMagenta = ConsoleColor.DarkMagenta
+    let darkCyan = ConsoleColor.DarkCyan
+    
+    let logOk header result =
+        log darkMagenta $"=> %s{header}\n" 
+        log green "=> Done:"
+        log darkCyan $"%s{result.ToString()}"
         
     let logError header msg footer =
-        Console.ForegroundColor <- darkGreen
-        printf "=> Failed: "
-        Console.ForegroundColor <- red
-        printfn $"%s{header}"
-        Console.ResetColor()
-        printfn $"%s{msg}"
-        Console.ForegroundColor <- yellow
-        printfn $"=> %s{footer}"
-        Console.ResetColor()
+        log darkRed "=> Failed: "
+        log red $"%s{header}"
+        log darkYellow $"%s{msg}"
+        log yellow $"=> %s{footer}"
