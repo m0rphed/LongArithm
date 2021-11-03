@@ -1,28 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="MyList.fs" />
-    <Compile Include="BigInt.fs" />
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <PackageId>LongArithm</PackageId>
+        <Version>0.0.1</Version>
+        <Authors>m0rphed</Authors>
+        <PackageDescription>Simple Long Arithmetic Expression Language Interpreter</PackageDescription>
+        <RepositoryUrl>https://github.com/m0rphed/LongArithm</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+    </PropertyGroup>
     
-    <Compile Include="AST.fs" />
+    <ItemGroup>
+        <Compile Include="MyList.fs"/>
+        <Compile Include="BigInt.fs"/>
     
-    <Compile Include="Types.fs" />
-    <Compile Include="Parser.fs" />
-    <Compile Include="Operators.fs" />
-    <Compile Include="Expressions.fs" />
-    <Compile Include="Statements.fs" />
-    <Compile Include="Runners.fs" />
+        <Compile Include="AST.fs"/>
 
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="5.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="FParsec" Version="1.1.1" />
-  </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+        <Compile Include="Types.fs"/>
+        <Compile Include="Parser.fs"/>
+        <Compile Include="Operators.fs"/>
+        <Compile Include="Expressions.fs"/>
+        <Compile Include="Statements.fs"/>
+        <Compile Include="Runners.fs"/>
+    </ItemGroup>
+    
+    <Import Project="..\..\.paket\Paket.Restore.targets"/>
 </Project>
