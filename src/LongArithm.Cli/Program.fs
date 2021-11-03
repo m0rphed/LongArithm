@@ -1,5 +1,6 @@
 module LongArithm.Cli.Main
 
+open System
 open System.Collections.Generic
 open Argu
 
@@ -28,13 +29,10 @@ let main (argv: string array) =
     if argv.Length = 0 || results.IsUsageRequested then parser.PrintUsage() |> printfn "%s"
     else
         let input =
-            if p.Contains(InputFile) then System.IO.File.ReadAllText (results.GetResult InputFile)
+            if p.Contains(InputFile) then System.IO.File.ReadAllText (results.GetResult InputFile) 
             elif p.Contains(InputString) then results.GetResult InputString
-            else failwith "No input code given"
-        let ast = parseString input
-        if p.Contains(Compute)
-            then
-                let initialState = { VariableTable = [] ; OutputBuffer = Queue<_>()}
-                let res = runStatements ast initialState
-                printfn $"State: %A{res}"
+            else invalidArg "args" "No input file or string given"
+        match Runners.safeRun input with
+        | Ok state -> printfn $"State: {state}"
+        | Error msg -> printfn $"Err: {msg}"
     0

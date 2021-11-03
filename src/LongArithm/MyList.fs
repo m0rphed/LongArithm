@@ -1,4 +1,8 @@
 module LongArithm.MyList
+(*  This is naive "home-grown" implementation of functional list data structure,
+    so the name is also "naive" and kinda dumb but it's a part of the task anyway :)    
+*)
+
 
 /// Generic List implementation "from scratch";
 /// `MyList` must be nonempty (always contains a value)
@@ -8,14 +12,17 @@ type MyList<'T> =
 
 /// Implementation of std. list function for MyList
 module MyList =
+    /// Returns list head
     let head = function
         | Single v -> v
         | Nodes (v, _) -> v
 
+    /// Returns list tail
     let tail = function
         | Single _ -> failwith "There's no tail"
         | Nodes (_, tail) -> tail
 
+    /// Applies the given function to each element of the list
     let rec iter action list =
         match list with
         | Single v -> action v
@@ -23,6 +30,9 @@ module MyList =
             action v
             nextNode |> iter action
 
+    /// Returns a new list containing
+    /// only the elements of the collection for which the given predicate returns "true";
+    /// fails if no elements satisfying predicate were found
     let rec filter condition list =
         match list with
         | Single v as myList ->
@@ -51,25 +61,30 @@ module MyList =
     /// Returns length of the list
     let length list = fold (fun acc _elem -> acc + 1) 0 list
 
-    let reverse myList =
-        match myList with
-        | Single _ -> myList
+    /// Returns reversed MyList
+    let reverse list =
+        match list with
+        | Single _ -> list
         | Nodes (head, tail) ->
             fold (fun rest v -> Nodes(v, rest)) (Single head) tail
 
+    /// Builds a new MyList whose elements are the results of applying
+    /// the given function to the corresponding elements of the two MyList-s pairwise.
     let rec map2 mapping myListA myListB =
         match myListA, myListB with
         | Single a, Single b -> Single (mapping a b)
         | Nodes (a, tailA), Nodes (b, tailB) -> Nodes (mapping a b, map2 mapping tailA tailB)
         | _ -> invalidArg "myListB" "Error [map2]: input lists differ in length."
     
-    /// Combines two lists of the same type into one
+    /// Returns a new MyList that contains the elements
+    /// of the first MyList followed
+    /// by elements of second MyList.
     let rec concat myListA myListB =
         match myListA with
         | Single v -> Nodes(v, myListB)
         | Nodes (v, nextNode) -> Nodes(v, concat nextNode myListB)
 
-    /// Converts from list to nonempty MyList
+    /// Converts list to nonempty MyList
     let rec fromList list =
         match list with
         | [ v ] -> Single v

@@ -7,6 +7,7 @@ open LongArithm.Interpreter
 open LongArithm.Interpreter.Expressions
 
 module Statements =
+    /// Gets exact value of specified literal value
     let private exactValueStr literal =
         match literal with
         | Int myBigInt -> $"%A{myBigInt}"
@@ -19,7 +20,7 @@ module Statements =
         evalResult
         |> exactValueStr
         |> state.OutputBuffer.Enqueue
-        
+        // print to std out
         printValue evalResult
         state
 
@@ -27,12 +28,13 @@ module Statements =
         let eValue = evaluateExpr state exp
         {state with VariableTable = (name, eValue) :: state.VariableTable}
     
+    /// Reads input line from console
     let read name state =
         let input = Console.ReadLine()
             
         let (|Int|_|) input =
            match BigInt.tryParseBigInt (input: string) with
-           | true, bigInteger -> Some(bigInteger)
+           | Ok bigInteger -> Some(bigInteger)
            | _ -> None
 
         let (|Bool|_|) input =

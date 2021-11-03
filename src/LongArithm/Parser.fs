@@ -2,8 +2,10 @@ namespace LongArithm.Parser
 
 open FParsec
 open AST
+open LongArithm // using interpreter types
 open LongArithm.BigInt
-    
+open LongArithm.Interpreter
+
 [<AutoOpen>]
 module Parsing =
     let pWord str = pstring str .>> spaces
@@ -17,7 +19,10 @@ module Parsing =
         |>> function
             | "true" -> Bool true
             | "false" -> Bool false
-            | _ -> failwith "Expected 'true' or 'false' boolean literal"
+            | _ ->
+                "Expected 'true' or 'false' boolean literal"
+                |> InterpreterParsingError
+                |> raise
 
     // FParsec defines the pint32 parser.
     // We simply cast its result to an int
@@ -221,12 +226,8 @@ module Parsing =
         pSetValue
     ]
     
-    let parseSourceFile filePath =
-        match runParserOnFile (many pStatement) () filePath System.Text.Encoding.UTF8 with
-        | Success (result, _, _) -> printfn $"%A{result}"
-        | Failure (error, _, _) -> printfn $"%s{error}"
-        
-    let parseString str =
-        match runParserOnString (many pStatement) () "run parser on string" str with
+    
+    let parseString inputStr =
+        match runParserOnString (many pStatement) () "run parser on string" inputStr with
+        | Failure (msg, _, _) -> raise (InterpreterParsingError msg)
         | Success (result, _, _) -> result
-        | Failure (error, _, _) -> failwith $"Error: %s{error}"

@@ -1,42 +1,96 @@
 namespace LongArithm.BigInt
 
 open System
+open System.Numerics
 open LongArithm
 open MyList
 
-[<AutoOpen>]
+/// Contains functionality
+/// indirectly related to big integer implementation, such as:
+/// - system Int32, and BigInteger conversions
+/// - definitions of `BigInt` exceptions
 module BigIntUtils =
-    exception BigIntError of string
+    /// Exception should be thrown when an attempt to apply
+    /// an operator/operation on the `BigInt` type fails
+    exception BigIntOperationError of string
+    
+    /// Exception should be thrown when parsing of `BigInt` fails
     exception BigIntParseError of string
     
+    /// Checks if specified integer represents single digit (from 0 to 9)
+    let isDigit n = n >= 0 && n <= 9
+    
+    /// Checks if specified `System.Numerics.BigInteger`
+    /// represents single digits (from 0 to 9)
+    let isDigit' (n: BigInteger) = n >= 0I && n <= 9I
+    
+    /// Checks that every integer value        
+    /// represents a digit (0 <= INTEGER <= 9)
     let checkDigits myList =
         let mutable digitBuffer = ""
         let _msg = "is out of range (0 <= digits <= 9) in number"
         myList
         |> MyList.iter
-            (fun digit ->
-                if digit >= 0 && digit <= 9
-                then digitBuffer <- digitBuffer + (string digit)
-                else BigIntError($"Digit: %i{digit} {_msg}: %s{digitBuffer} <- %i{digit}")
+            (fun n ->
+                if isDigit n
+                then digitBuffer <- digitBuffer + (string n)
+                else BigIntParseError($"Digit: %i{n} {_msg}: %s{digitBuffer} <- %i{n}")
                     |> raise)
 
+    let listOfDigits number =
+        let rec loop n remainder =
+            if n = 0 then remainder
+            else loop (n / 10) (Nodes(n % 10, remainder))
+        
+        let number = abs number
+        loop (number / 10) (number % 10 |> Single)
+    
+    let listOfDigits' bigNum =
+        let rec loop n remainder =
+            if n = 0I then remainder
+            else loop (n / 10I) (Nodes(n % 10I, remainder))
+        
+        let number = BigInteger.Abs bigNum
+        loop (number / 10I) (number % 10I |> Single)
+    
+    /// Converts character to digit (int);
+    /// fails if character is not a digit
+    let charToInt (ch: char) = Int32.Parse (string ch)
+        
+    /// Tries to convert character to digit (int)
+    let tryConvertToInt ch =
+        match Int32.TryParse(string ch) with
+        | true, res -> res
+        | false, _ -> BigIntParseError($"Expected digit, got: %c{ch}") |> raise
+    
+/// Representation of a sign
+/// for a BigInt structure
 type Sign =
     | Positive
     | Negative
+    static member (*) (first, second) =
+        match first, second with
+        | Positive, Positive
+        | Negative, Negative -> Positive
+        | Negative, Positive 
+        | Positive, Negative -> Negative
+        
+open BigIntUtils
 
+/// Big Integer structure
+/// the structure stores the sign and numbers separately 
 [<Struct>]
 type MyBigInt =
     val Sign: Sign
     val Digits: MyList<int>
 
-    new(sign, digitsList) =
+    new(sign, digits) =
         let sign =
-            if digitsList = Single 0
+            if digits = Single 0
             then Positive else sign
-        
-        checkDigits digitsList
+        checkDigits digits
         { Sign = sign
-          Digits = digitsList}
+          Digits = digits}
         
     override this.ToString() =
         let result =
@@ -48,67 +102,78 @@ type MyBigInt =
         else result
 
 module BigInt =
+    let createPositive number = (Positive, listOfDigits number) |> MyBigInt
+    let createNegative number = (Negative, listOfDigits number) |> MyBigInt
+    let positive digits = (Positive, digits) |> MyBigInt
+    let negative digits = (Negative, digits) |> MyBigInt
+
+    let bigIntOf n =
+        if n < 0
+        then createNegative n
+        else createPositive n 
+    
+    let zero () = createPositive 0
+    let one () = createPositive 1  
+    let negOne () = createNegative 1 
+    
+    let (|Zero|One|NegativeOne|Number|) (n: MyBigInt) =
+        match n.Sign, n.Digits with
+        | Positive, Single 0 -> Zero
+        | Positive, Single 1 -> One
+        | Negative, Single 1 -> NegativeOne
+        | _, _ -> Number
+    
     let tryParseBigInt (input: string) =
-        let tryConvert ch =
-            match Int32.TryParse(string ch) with
-            | true, res -> res
-            | false, _ -> BigIntParseError($"Expected digit, got: %c{ch}") |> raise
         try
             let digits =
                 input
                 |> List.ofSeq
-                |> List.map tryConvert
+                |> List.map tryConvertToInt
                 |> MyList.fromList
-            true, MyBigInt(Positive, digits)
+            digits
+            |> positive
+            |> Ok 
         with
-        | BigIntParseError _ ->
-            false, MyBigInt(Positive, Single 0)
+        | BigIntParseError msg -> Error msg
     
     let parseBigInt (input: string) =
-        let convert (ch: char) =
-            Int32.Parse (string ch)
-        
         let digits =
             input
             |> List.ofSeq
-            |> List.map convert
+            |> List.map charToInt
             |> MyList.fromList
 
-        MyBigInt(Positive, digits)
-    
-    let toMyList number =
-        let rec go n remainder =
-            if n = 0 then remainder
-            else go (n / 10) (Nodes(n % 10, remainder))
-        go (number / 10) (Single(number % 10))
-        
-    let systemBigIntToMyList (number: System.Numerics.BigInteger) =
-        let rec go n remainder =
-            if n = 0I then remainder
-            else go (n / 10I) (Nodes(n % 10I, remainder))
-        go (number / 10I) (Single(number % 10I))
-        
-    let big0 = (Positive, 0 |> toMyList) |> MyBigInt 
-    let big1 = (Positive, 1 |> toMyList) |> MyBigInt
-    let negBig1 = (Negative, 1 |> toMyList ) |> MyBigInt 
+        positive digits
 
-    let getSign (x: MyBigInt) = if x.Sign = Positive then 1 else -1
+    let getSign (x: MyBigInt) =
+        if x.Sign = Positive
+        then 1
+        else -1
 
     let setSign x =
-        if x = 1 || x = 0 then Positive
-        elif x = -1 then Negative
-        else failwith "1, 0 or -1 expected"
+        match x with
+        | 0 | 1 -> Positive
+        | -1    -> Negative
+        | unexpected ->
+            $"Expected: 1, 0 or -1; got: {unexpected} "
+            |> BigIntOperationError
+            |> raise
 
-    let private negateSign (x: MyBigInt) =
-        let sign =
-            match x.Sign with
-            | Negative -> Positive
-            | Positive -> Negative
-        
-        MyBigInt(sign, x.Digits)
+    let negate (x: MyBigInt) =
+        match x with
+        | Zero -> x
+        | One -> negOne ()
+        | NegativeOne -> one ()
+        | Number ->
+            let sign =
+                match x.Sign with
+                | Negative -> Positive
+                | Positive -> Negative
+            MyBigInt(sign, x.Digits)
 
-    /// Добавляет нули в начало одного из списков, пока их длина разная
-    let equalize (x, y) = 
+    /// Adds zeros at the beginning
+    /// of specified digit list until list's lengths differ
+    let private equalize (x, y) = 
         let rec go x y lengthDiff =
             if lengthDiff = 0 then (x, y)
             elif lengthDiff < 0 then go (Nodes(0, x)) y (lengthDiff + 1)
@@ -117,20 +182,24 @@ module BigInt =
         let diff = MyList.length x - MyList.length y
         go x y diff
 
-    /// Удаляет все нули из префикса списка
-    let rec delZeroPrefix myList =
-        match myList with
-        | Single _ -> myList
+    /// Removes all zeros from the prefix
+    /// of `BigInt` (repr. as list of digits)
+    let rec private deleteZeroPrefix digits =
+        match digits with
+        | Single _ -> digits
         | Nodes (head, tail) ->
-            if head = 0 then delZeroPrefix tail else myList
+            if head = 0 then deleteZeroPrefix tail else digits
 
-    let rec addZeroes count myList =
-        if count < 0 then failwith "addZeroes counter could not be < 0"
+    /// Adds zeros at the beginning
+    /// of specified BigInt (repr. as list of digits) 
+    let rec private addZeros count myList =
+        if count < 0 then invalidArg "count" "addZeroes counter could not be < 0"
         if count = 0 then myList
-        else addZeroes (count - 1) (Nodes(0, myList))
+        else addZeros (count - 1) (Nodes(0, myList))
 
-    /// Возвращает true, если x >= y в лексикографическом порядке
-    let notLesser x y =
+    /// Returns true if x >= y
+    /// (x lexicographically greater than or equal to y)
+    let private notLess x y =
         let lenX = MyList.length x
         let lenY = MyList.length y
 
@@ -139,14 +208,19 @@ module BigInt =
             let rec go x y =
                 match x, y with
                 | Single _, Nodes _
-                | Nodes _, Single _ -> failwith "Impossible case"
+                | Nodes _, Single _ ->
+                    "Expected operands to be equal by length;"
+                        + $"instead got: %A{x}; %A{y}"
+                        |> BigIntOperationError
+                        |> raise
                 | Single headX, Single headY -> headX >= headY
                 | Nodes (headX, tailX), Nodes (headY, tailY) ->
-                    if headX = headY then go tailX tailY else headX >= headY
-
+                    if headX = headY
+                    then go tailX tailY
+                    else headX >= headY
             go x y
 
-    /// Проходит по списку, перекидывая лишнее на следующий разряд
+    /// Goes through the list, pushing the excess to the next digit
     let rec private manageRemainders =
         function 
         | Single x ->
@@ -163,15 +237,15 @@ module BigInt =
                 else (-1, Single(10 + head))
             
             let remainder, folded = MyList.fold manageRem acc tail
-            delZeroPrefix (Nodes(remainder, folded))
+            deleteZeroPrefix (Nodes(remainder, folded))
 
-    let sumOrSub (x: MyBigInt) (y: MyBigInt) operator =
+    let private sumOrSub op (x: MyBigInt) (y: MyBigInt)  =
         // Уравняли списки по длине
         let xEq, yEq = equalize (x.Digits, y.Digits)
 
         let mapped =
-            MyList.map2 (fun x1 y1 -> operator (getSign x * x1) (getSign y * y1)) xEq yEq
-            |> delZeroPrefix
+            MyList.map2 (fun x1 y1 -> op (getSign x * x1) (getSign y * y1)) xEq yEq
+            |> deleteZeroPrefix
             // Сложили/вычли поразрядно и развернули список
             |> MyList.reverse
 
@@ -182,17 +256,17 @@ module BigInt =
     let sum (x: MyBigInt) (y: MyBigInt) =
         match x.Sign, y.Sign with
         // Поэтому приходится делать проверку на модуль и знак
-        | Positive, Positive -> sumOrSub x y (+)
-        | Negative, Negative -> sumOrSub (negateSign x) (negateSign y) (+) |> negateSign
-        | Positive, Negative when notLesser x.Digits y.Digits -> sumOrSub x y (+)
-        | Positive, Negative -> sumOrSub (negateSign y) x (-) |> negateSign
-        | Negative, Positive when notLesser x.Digits y.Digits -> sumOrSub (negateSign x) y (-) |> negateSign
-        | Negative, Positive -> sumOrSub y x (+)
+        | Positive, Positive -> sumOrSub (+) x y 
+        | Negative, Negative -> sumOrSub (+) (negate x) (negate y) |> negate
+        | Positive, Negative when notLess x.Digits y.Digits -> sumOrSub (+) x y 
+        | Positive, Negative -> sumOrSub (-) (negate y) x |> negate
+        | Negative, Positive when notLess x.Digits y.Digits -> sumOrSub (-) (negate x) y |> negate
+        | Negative, Positive -> sumOrSub (+) y x
 
-    let sub (x: MyBigInt) (y: MyBigInt) = sum x (negateSign y)
+    let sub (x: MyBigInt) (y: MyBigInt) = sum x (negate y)
 
     let mul (x: MyBigInt) (y: MyBigInt) =
-        let acc = MyBigInt(Positive, Single 0), 0
+        let acc = zero (), 0
         let result, _ =
             y.Digits
             |> MyList.reverse
@@ -202,38 +276,43 @@ module BigInt =
                     // в соответствии с разрядом множителя
                     let mapped =
                         MyList.map (fun x1 -> x1 * y) x.Digits
-                        |> delZeroPrefix
+                        |> deleteZeroPrefix
                         |> MyList.reverse
-                        |> addZeroes rank
-
-                    let newRes = manageRemainders mapped
-                    (sum r (MyBigInt(Positive, newRes)), rank + 1)
+                        |> addZeros rank
+                    let newRem = manageRemainders mapped
+                    (sum r (positive newRem), rank + 1)
                 )
                 acc
 
-        MyBigInt(setSign (getSign x * getSign y), result.Digits)
+        MyBigInt(x.Sign * y.Sign, result.Digits)
 
-    let divOrRem (x: MyBigInt) (y: MyBigInt) =
-        let divide x y = // Находит частное(от 0 до 9) и остаток от деления.
-            let mutable down = 1 // Применяется только если длина делимого равна или больше на 1, чем у делителя
+    let private divOrRem (x: MyBigInt) (y: MyBigInt) =
+        // Находит частное(от 0 до 9) и остаток от деления.
+        let divide x y =
+            // Применяется только если длина
+            // делимого равна или больше на 1, чем у делителя
+            let mutable down = 1
             let mutable up = 10
 
             while up - down > 1 do
-                let r = MyBigInt(Positive, toMyList ((up + down) / 2))
-                let f = (mul (MyBigInt(Positive, y)) r)
-
-                if notLesser x f.Digits
+                let r = (up + down) / 2 |> createPositive
+                let f = (mul (positive y) r)
+                if notLess x f.Digits
                 then down <- ((up + down) / 2)
                 else up <- ((up + down) / 2)
 
-            // частное от деления (целая часть)
+            // quotient of division (quotient is integer)
             let quotient = (up + down) / 2
-            let quotXRes = mul (MyBigInt(Positive, y)) (MyBigInt(Positive, Single quotient))
+            let quotXRes =
+                quotient
+                |> Single
+                |> positive
+                |> mul (positive y) 
 
-            let remainder = sub (MyBigInt(Positive, x)) quotXRes
+            let remainder = sub (positive x) quotXRes
             (quotient, remainder.Digits)
 
-        if y.Digits = Single 0 then raise (BigIntError "Division by zero")
+        if y.Digits = Single 0 then raise (BigIntOperationError "Division by zero")
         let divisorLen = MyList.length y.Digits
         let acc = (Single 0, Single 0, divisorLen, 0)
         let rem, res, _, c =
@@ -241,9 +320,10 @@ module BigInt =
             |> MyList.fold
                 // Отрезаем от делимого числа до тех пор, пока не получится...
                 (fun (dividend, result, divisorLen, c) x1 ->
-                    // ...использовать divide и добавляем нули, если было занято более 1 разряда за раз
+                    // ...использовать divide и добавляем нули,
+                    // если было занято более 1 разряда за раз
                     let newC = c + 1
-                    let newRes =
+                    let newRem =
                         if newC >= 2
                         then Nodes(0, result)
                         else result
@@ -251,71 +331,83 @@ module BigInt =
                     let newDividend =
                         Single x1
                         |> MyList.concat dividend
-                        |> delZeroPrefix
+                        |> deleteZeroPrefix
                     
                     let newDividendLength = MyList.length newDividend
-                    if newDividendLength > divisorLen || (newDividendLength = divisorLen && notLesser newDividend y.Digits) then
-                        let m, rem = divide newDividend y.Digits
-                        rem, Nodes(m, newRes), divisorLen, 0
-                    else newDividend, newRes, divisorLen, c + 1
+                    
+                    if  newDividendLength > divisorLen
+                        || (newDividendLength = divisorLen
+                        && notLess newDividend y.Digits) then
+                            let m, rem = divide newDividend y.Digits
+                            rem, Nodes(m, newRem), divisorLen, 0
+                    else newDividend, newRem, divisorLen, c + 1
                 ) acc
 
-        let newRes =
-            // Если после последнего divide были заняты ещё разряды, необходимо добавить 0 в результат
-            addZeroes (if c > 0 then 1 else 0) res
+        let newRem =
+            // Если после последнего divide были заняты ещё разряды,
+            // необходимо добавить 0 в результат
+            addZeros (if c > 0 then 1 else 0) res
             |> MyList.reverse
-            |> delZeroPrefix
-
-        (rem, newRes)
+            |> deleteZeroPrefix
+        (rem, newRem)
 
     let div (x: MyBigInt) (y: MyBigInt) =
-        let rSign = setSign (getSign x * getSign y)
-        let res = snd (divOrRem x y)
-        MyBigInt(rSign, res)
+        let result = snd (divOrRem x y)
+        MyBigInt(x.Sign * y.Sign, result)
 
     let getMod (x: MyBigInt) (y: MyBigInt) =
-        let res = fst (divOrRem x y)
-        MyBigInt(x.Sign, res)
+        MyBigInt(x.Sign, fst (divOrRem x y))
 
-    let power (n: MyBigInt) (pow: MyBigInt) =
-        let rec go r (p: MyBigInt) =
-            match p.Digits with
-            | Single 0 -> MyBigInt(Positive, Single 1)
-            | Single 1 -> r
-            | _ ->
-                let reminder, dv = divOrRem p (MyBigInt(Positive, Single 2))
-                let div = MyBigInt(Positive, dv)
-                let nr = go r div
+    let power (number: MyBigInt) (exp: MyBigInt) =
+        let rec go bigN (exp: MyBigInt) =
+            match exp.Digits with
+            | Single 0 -> one ()
+            | Single 1 -> bigN
+            | _else ->
+                let remainder, dv =
+                    Single 2
+                    |> positive
+                    |> divOrRem exp 
+                
+                let div = positive dv
+                let newRem = go bigN div
 
-                if reminder = Single 0
-                then mul nr nr
-                else mul n (mul nr nr)
+                if remainder = Single 0
+                then mul newRem newRem
+                else mul bigN (mul newRem newRem)
 
-        if pow.Sign = Negative
-        then failwith "Positive power expected"
-        else go n pow
+        if exp.Sign = Positive
+        then go number exp
+        else
+            "Negative exp. is not supported"
+            |> BigIntOperationError
+            |> raise 
 
     let toBinary (x: MyBigInt) =
         let rec go l r =
             match l with
             | Single 0 -> r
-            | _ ->
+            | _else ->
                 let rem, div =
-                    divOrRem (MyBigInt(Positive, l)) (MyBigInt(Positive, Single 2))
-                go div (Nodes(MyList.head rem, r))
+                    Single 2
+                    |> positive
+                    |> divOrRem (positive l)
+                go div (Nodes (MyList.head rem, r))
 
         let rem, div =
-            divOrRem (MyBigInt(Positive, x.Digits)) (MyBigInt(Positive, Single 2))
+            Single 2
+            |> positive
+            |> divOrRem (positive x.Digits)
 
-        MyBigInt(x.Sign, go div (Single(MyList.head rem)))
+        let binaryN =
+            rem
+            |> MyList.head
+            |> Single
+            |> go div 
+        
+        MyBigInt(x.Sign, binaryN)
 
-    let abs (x: MyBigInt) = MyBigInt(Positive, x.Digits)
-
-    let negate (x: MyBigInt) =
-        match x.Sign with
-        | Negative -> MyBigInt(Positive, x.Digits)
-        | Positive when x.Digits = Single 0 -> MyBigInt(Positive, x.Digits)
-        | Positive ->  MyBigInt(Negative, x.Digits)
+    let abs (x: MyBigInt) = positive x.Digits
 
     let equal (x: MyBigInt) (y: MyBigInt) =
         let signDiffers = x.Sign <> y.Sign
@@ -329,10 +421,10 @@ module BigInt =
             
     let notEqual (x: MyBigInt) (y: MyBigInt) = not (equal x y)
     
-    /// Выводит true если первое число больше второго
+    /// Returns true if first greater than second
     let greater (a: MyBigInt) (b: MyBigInt) =
-        let rec greater' (x: MyList<int>) (y: MyList<int>) =
-            match (x, y) with
+        let rec loop x y =
+            match x, y with
             | Single a, Single b -> a > b
             | Single _, Nodes _ -> false         
             | Nodes _, Single _ -> true
@@ -340,13 +432,13 @@ module BigInt =
                 let lengthX, lengthY = MyList.length x, MyList.length y
                 match lengthX = lengthY with
                 | false -> lengthX > lengthY
-                | true -> if hd1 <> hd2 then hd1 > hd2 else (greater' tail1 tail2)
+                | true -> if hd1 <> hd2 then hd1 > hd2 else (loop tail1 tail2)
 
         match a.Sign, b.Sign with
         | Negative, Positive -> false
         | Positive, Negative -> true
-        | Positive, Positive -> greater' a.Digits b.Digits
-        | Negative, Negative -> not (greater' a.Digits b.Digits)
+        | Positive, Positive -> loop a.Digits b.Digits
+        | Negative, Negative -> not (loop a.Digits b.Digits)
 
     let less (a: MyBigInt) (b: MyBigInt) =
         not (greater a b)
@@ -361,16 +453,18 @@ module BigInt =
         | true -> true
         | false -> less a b
 
+// Extending BigInt...
 open BigInt
+// ...with operators >, <, =, !=, +, -, etc.
 type MyBigInt with
-    static member (+) (a, b: MyBigInt) = sum a b
-    static member (-) (a, b: MyBigInt) = sub a b
-    static member (%) (a, b: MyBigInt) = getMod a b
-    static member (*) (a, b: MyBigInt) = mul a b
-    static member (/) (a, b: MyBigInt) = div a b
-    static member op_Equality (a, b: MyBigInt) = equal a b
-    static member op_Inequality (a, b: MyBigInt) = notEqual a b
-    static member op_GreaterThan (a, b: MyBigInt) = greater a b
-    static member op_LessThan (a, b: MyBigInt) = less a b
-    static member op_GreaterThanOrEqual (a, b: MyBigInt) = greaterOrEqual a b
-    static member op_LessThanOrEqual (a, b: MyBigInt) = lessOrEqual a b
+    static member (+) (a, b) = sum a b
+    static member (-) (a, b) = sub a b
+    static member (%) (a, b) = getMod a b
+    static member (*) (a, b) = mul a b
+    static member (/) (a, b) = div a b
+    static member op_Equality (a, b) = equal a b
+    static member op_Inequality (a, b) = notEqual a b
+    static member op_GreaterThan (a, b) = greater a b
+    static member op_LessThan (a, b) = less a b
+    static member op_GreaterThanOrEqual (a, b) = greaterOrEqual a b
+    static member op_LessThanOrEqual (a, b) = lessOrEqual a b

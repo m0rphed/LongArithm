@@ -35,7 +35,7 @@ module ``BigInt Tests`` =
         (a1 / a2).ToString() |> should equal
             ((BigInt.div b1 b2).ToString())
             
-module ``BigInt Tests2`` =
+module ``Interpreter BigInt Tests`` =
     open Xunit
     open FsUnit.Xunit
     open LongArithm.Interpreter.Runners

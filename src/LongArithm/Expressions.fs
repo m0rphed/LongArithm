@@ -23,7 +23,7 @@ module Expressions =
     
     let interpretIntegerValue = function
         | Int i -> i
-        | _     -> BigInt.big0
+        | _     -> BigInt.zero ()
 
     let rec evaluateExpr state expr =
         let applyBinOp state op first second =

@@ -9,9 +9,9 @@
     <Compile Include="BigInt.fs" />
     
     <Compile Include="AST.fs" />
-    <Compile Include="Parser.fs" />
     
     <Compile Include="Types.fs" />
+    <Compile Include="Parser.fs" />
     <Compile Include="Operators.fs" />
     <Compile Include="Expressions.fs" />
     <Compile Include="Statements.fs" />
