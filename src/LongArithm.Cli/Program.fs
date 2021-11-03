@@ -24,7 +24,7 @@ let main (argv: string array) =
             if p.Contains(InputFile) then System.IO.File.ReadAllText (results.GetResult InputFile) 
             elif p.Contains(InputString) then results.GetResult InputString
             else invalidArg "args" "No input file or string given"
-        match Runners.safeRun input with
+        match Runners.runTryToCatchErrors input with
         | Ok state -> printfn $"State: {state}"
-        | Error msg -> printfn $"Err: {msg}"
+        | Error msg -> printfn $"Error: {msg}"
     0

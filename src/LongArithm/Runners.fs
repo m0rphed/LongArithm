@@ -8,7 +8,7 @@ open LongArithm.Interpreter.Statements
 module Runners =
     /// Parses AST from input string, runs interpreter with initial empty state.
     /// Returns final program state if succeeded 
-    let safeRun input =
+    let runTryToCatchErrors input =
         let _input = $"\n_________\n{input}\n_________\n"
         try
             let ast = parseString input
