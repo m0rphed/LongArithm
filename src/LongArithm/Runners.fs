@@ -8,7 +8,7 @@ open LongArithm.Interpreter.Statements
 module Runners =
     /// Parses AST from input string, runs interpreter with initial empty state.
     /// Returns final program state if succeeded 
-    let runTryToCatchErrors input =
+    let runTryCatchErrors input =
         let _input = $"\n_________\n{input}\n_________\n"
         try
             let ast = parseString input
@@ -25,12 +25,12 @@ module Runners =
             // return computed result
             Ok res
         with
-        | InterpreterParsingError msg as err ->
+        | InterpreterParsingError msg ->
             Highlighting.logError "Parsing error" msg $"while parsing {_input}"
-            Error err
-        | InterpreterRuntimeError msg as err -> 
+            Error $"=> Failed: Parsing error\n%s{msg}\n=> while parsing %s{_input}"
+        | InterpreterRuntimeError msg -> 
             Highlighting.logError "Runtime error" msg $"while running {_input}"
-            Error err
+            Error $"=> Failed: Runtime error\n%s{msg}\n=> while parsing %s{_input}"
  
     /// Simply runs the interpreter
     let run input =

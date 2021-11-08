@@ -8,6 +8,10 @@ type ProgramState =
     { VariableTable: (Name * Value) list
       OutputBuffer: Queue<string> }
 
+module Events =
+    let dataToConsole = Event<string>()
+    let printed = dataToConsole.Publish
+
 /// Error should be thrown when parsing fails
 exception InterpreterParsingError of string
 
@@ -17,7 +21,7 @@ exception InterpreterRuntimeError of string
 /// Basic highlighting
 module Highlighting =
     /// Simply logs colorized text to console
-    let log =
+    let consoleLog =
         let lockObj = obj()
         fun color str ->
             lock lockObj (fun _ ->
@@ -38,13 +42,14 @@ module Highlighting =
     
     /// Logs highlighted result to console
     let logOk header result =
-        log darkMagenta $"=> %s{header}\n" 
-        log green "=> Done:"
-        log darkCyan $"%s{result.ToString()}"
+        consoleLog darkMagenta $"=> %s{header}\n" 
+        consoleLog green "=> Done:"
+        consoleLog darkCyan $"%s{result.ToString()}"
         
     /// Logs highlighted error to console
     let logError header msg footer =
-        log darkRed "=> Failed: "
-        log red $"%s{header}"
-        log darkYellow $"%s{msg}"
-        log yellow $"=> %s{footer}"
+        consoleLog darkRed "=> Failed: "
+        consoleLog red $"%s{header}"
+        consoleLog darkYellow $"%s{msg}"
+        consoleLog yellow $"=> %s{footer}"
+        

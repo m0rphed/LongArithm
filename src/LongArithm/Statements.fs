@@ -7,20 +7,30 @@ open LongArithm.Interpreter
 open LongArithm.Interpreter.Expressions
 
 module Statements =
+    open Events
+
     /// Gets exact value of specified literal value
-    let private exactValueStr literal =
+    let private valueToStr literal =
         match literal with
         | Int myBigInt -> $"%A{myBigInt}"
         | Bool bool -> $"%b{bool}"
         | Str str -> str
     
     let display exp state =
-        let evalResult = evaluateExpr state exp
+        let evalResult =
+            evaluateExpr state exp
+        
+        // trigger print event
+        evalResult
+        |> valueToStr
+        |> dataToConsole.Trigger
+        
         // save value to print buffer
         evalResult
-        |> exactValueStr
+        |> valueToStr
         |> state.OutputBuffer.Enqueue
-        // print to std out
+        
+        // print to stdout
         printValue evalResult
         state
 
