@@ -41,6 +41,17 @@ module ``Interpreter BigInt Tests`` =
     open LongArithm.Interpreter.Runners
     
     [<Fact>]
+    let ``faulty test`` () =
+        let program = " x = 3\nprint (азаза)"
+        
+        let getRes () =
+            match runTryCatchErrors program with
+            | Ok _res -> ()
+            | Error errMsg -> failwith $"Parsing error: {errMsg}"
+
+        getRes |> shouldFail 
+    
+    [<Fact>]
     let ``11 ^ 22 -- 'A in power of B' operator test`` () =
         let program =
             "x = 3

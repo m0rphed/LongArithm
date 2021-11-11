@@ -206,6 +206,7 @@ module Parsing =
 
     let pBlock: Parser<Statement list, Unit> =
         between (pWord "{") (pWord "}") (many pStatement)
+    
     let pIf: Parser<Statement, Unit> =
         let condition = pWord "if" >>. pExpression
         let inner = pBlock
@@ -219,7 +220,7 @@ module Parsing =
         
         condition .>>. pBlock
         |>> While
-        
+
     do pStatementRef := choice [
         pPrint
         pIf
@@ -227,8 +228,9 @@ module Parsing =
         pSetValue
     ]
     
+    let langParser: Parser<Statement list, Unit> = spaces >>. many pStatement
     
     let parseString inputStr =
-        match runParserOnString (many pStatement) () "run parser on string" inputStr with
+        match runParserOnString langParser () "run parser on string" inputStr with
         | Failure (msg, _, _) -> raise (InterpreterParsingError msg)
         | Success (result, _, _) -> result
