@@ -98,6 +98,7 @@ module Parsing =
         {Symbol = "+";    Precedence = 2; Operator = BinOp Add}
         {Symbol = "-";    Precedence = 2; Operator = BinOp Sub}
         {Symbol = "*";    Precedence = 3; Operator = BinOp Mult}
+        {Symbol = "^";    Precedence = 3; Operator = BinOp Pow}
         {Symbol = "/";    Precedence = 3; Operator = BinOp Div}
         {Symbol = "%";    Precedence = 3; Operator = BinOp Mod}
         {Symbol = "-";    Precedence = 1; Operator = UnOp Negate}

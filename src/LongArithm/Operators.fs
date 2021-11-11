@@ -20,6 +20,7 @@ module Operators =
     let subtract    = binaryIntOperation (-)
     let modulus     = binaryIntOperation (%)
     let multiply    = binaryIntOperation (*)
+    let pow         = binaryIntOperation (^^)
     let divide      = binaryIntOperation (/)
     
     let compare comparison x y =
@@ -62,10 +63,8 @@ module Operators =
         | Neq       -> neq
         | And       -> conjunction
         | Or        -> disjunction
-        | StrConcat ->
-            "Operator 'String Concat' currently not implement :("
-            |> NotImplementedException
-            |> raise
+        | Pow       -> pow
+        | op -> $"No such operator {op}" |> InterpreterRuntimeError |> raise 
     
     (* Unary operators: Abs, Negate *)
     

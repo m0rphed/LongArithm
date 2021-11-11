@@ -14,6 +14,7 @@ module AST =
         | Add // Arithmetic operators
         | Sub
         | Mult
+        | Pow
         | Div
         | Mod
         | Gt // Comparison operators

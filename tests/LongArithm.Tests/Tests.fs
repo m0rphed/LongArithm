@@ -41,6 +41,20 @@ module ``Interpreter BigInt Tests`` =
     open LongArithm.Interpreter.Runners
     
     [<Fact>]
+    let ``11 ^ 22 -- 'A in power of B' operator test`` () =
+        let program =
+            "x = 3
+            print (x)
+            x = 11
+            y = 22
+            z = x ^ y
+            print (z)"
+        
+        let res = run program
+        "3" |> should equal (res.OutputBuffer.Dequeue())
+        "81402749386839761113321" |> should equal (res.OutputBuffer.Dequeue())
+        
+    [<Fact>]
     let ``Sum test`` () =
         let program = "x = 1 + 2 + 3 + 10 \nprint (x == 16)"
         let res = run program

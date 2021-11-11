@@ -461,6 +461,9 @@ type MyBigInt with
     static member (-) (a, b) = sub a b
     static member (%) (a, b) = getMod a b
     static member (*) (a, b) = mul a b
+    /// Using (^^) -- "A in power of B" operator
+    /// because (^) shadows std. F# operator
+    static member (^^) (a, b) = power a b
     static member (/) (a, b) = div a b
     static member op_Equality (a, b) = equal a b
     static member op_Inequality (a, b) = notEqual a b
